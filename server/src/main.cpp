@@ -1,4 +1,7 @@
 #include <iostream>
+#include <string>
+#include <stdexcept>
+#include "date_time_utils.h"
 
 int main(int argc, char* argv[]) {
     // Validação dos argumentos da linha de comando
@@ -22,5 +25,6 @@ int main(int argc, char* argv[]) {
 
 
     std::cout << "Servidor iniciado na porta: " << port << std::endl;
+    std::cout << "Data atual: " << getCurrentDateString() << " " << getCurrentTimeString() << std::endl;
     return 0;
 }

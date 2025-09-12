@@ -1,0 +1,21 @@
+# CMake build directory
+/build/
+/CMakeFiles/
+/CMakeCache.txt
+/Makefile
+/cmake_install.cmake
+
+# IDEs
+*.vscode/
+
+# Generated objects
+*.o
+*.obj
+*.exe
+*.out
+*.a
+*.so
+*.dll
+*.dylib
+/bin/
+/lib/
