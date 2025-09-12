@@ -3,4 +3,10 @@
 ### Sistema de tranferência bancária instantânea e eficiente entre clientes
 ## Etapa 1
 ### Servidor único, múltiplos clientes, suporte a concorrência e multi-thread
-
+# Build
+## Requisitos
+### CMake instalado
+## Comando para compilar projeto
+### cmake --build build
+## Comando para executar o projeto
+### ./build/server/servidor \<porta\>
