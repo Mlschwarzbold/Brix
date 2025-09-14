@@ -2,6 +2,7 @@
 #include <string>
 #include <stdexcept>
 #include "date_time_utils.h"
+#include "client_UDP_broadcast.h"
 
 int main(int argc, char* argv[]) {
     // Validação dos argumentos da linha de comando
@@ -23,12 +24,14 @@ int main(int argc, char* argv[]) {
     }
     // Porta válida, iniciar cliente
 
-
     std::cout << "Cliente iniciado na porta: " << port << std::endl;
     std::cout << "Data atual: " << getCurrentDateString() << " " << getCurrentTimeString() << std::endl;
 
 
     // Broadcast para descobrir IP do servidor
+
+    client_UDP_broadcast();
+    
 
     return 0;
 }

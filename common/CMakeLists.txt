@@ -5,7 +5,7 @@ add_library(common
 target_include_directories(common PUBLIC include)
 
 
-# Tell consumers of common where to find headers
+
 target_include_directories(common
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
