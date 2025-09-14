@@ -6,7 +6,13 @@
 # Build
 ## Requisitos
 ### CMake instalado
+### Algumas bibliotecas, se vira
 ## Comando para compilar projeto
 ### cmake --build build
+#### (CMake talvez esteja meio sus)
 ## Comando para executar o projeto
 ### ./build/server/servidor \<porta\>
+### ./build/client/cliente \<porta\>
+
+## O que está sendo feito agora
+### Brodacast UDP pra achar IP do servidor
