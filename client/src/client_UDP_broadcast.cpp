@@ -15,6 +15,7 @@
 int client_UDP_broadcast() { 
     int sockfd; 
     char buffer[MAXLINE]; 
+    char send_buffer[MAXLINE]; 
     const char *hello = "Hello from client"; 
     struct sockaddr_in     servaddr; 
   
@@ -25,29 +26,62 @@ int client_UDP_broadcast() {
     } 
   
     memset(&servaddr, 0, sizeof(servaddr)); 
-    //servaddr.sin_addr.s_addr = inet_addr("192.168.0.10"); // this is my server IP address
-
-
 
     // Filling server information 
     servaddr.sin_family = AF_INET; 
     servaddr.sin_port = htons(PORT); 
-    servaddr.sin_addr.s_addr = INADDR_ANY; 
+    //servaddr.sin_addr.s_addr = INADDR_ANY; 
+    servaddr.sin_addr.s_addr = inet_addr("192.168.0.10"); // this is my server IP address
       
     int n;
     socklen_t len; 
-      
+    std::string msg;
+
+    while (true)
+    {
+        // get message from stdin
+        std::cout << "Escreve algo ai (ou 'exit' pra fechar o cliente): ";
+        std::getline(std::cin, msg);
+        if (msg == "exit") {
+            break;
+        }
+        // copy to send buffer
+        strncpy(send_buffer, msg.c_str(), MAXLINE);
+        sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+        std::cout<<" >> "<< send_buffer <<std::endl;
+
+        std::cout << "Escreve algo ai (ou 'exit' pra fechar o cliente): ";
+        std::getline(std::cin, msg);
+        if (msg == "exit") {
+            break;
+        }
+        // copy to send buffer
+        strncpy(send_buffer, msg.c_str(), MAXLINE);
+        sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+        std::cout<<" >> "<< send_buffer <<std::endl; 
+
+        // espera receber mensagem
+
+        //len = sizeof(servaddr); // is copilot making stuff up 
+        n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
+        buffer[n] = '\0';
+        std::cout<<"Server>> : "<<buffer<<std::endl;
+    }
+    
+    
+    /*
     sendto(sockfd, (const char *)hello, strlen(hello), 
         MSG_CONFIRM, (const struct sockaddr *) &servaddr,  
             sizeof(servaddr)); 
     std::cout<<"Hello message sent."<<std::endl; 
+    
           
     n = recvfrom(sockfd, (char *)buffer, MAXLINE,  
                 MSG_WAITALL, (struct sockaddr *) &servaddr, 
                 &len); 
     buffer[n] = '\0'; 
     std::cout<<"Server :"<<buffer<<std::endl; 
-  
+    */
     close(sockfd); 
     return 0; 
 }

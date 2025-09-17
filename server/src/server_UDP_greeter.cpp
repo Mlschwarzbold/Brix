@@ -15,6 +15,7 @@
 int server_UDP_greeter() { 
     int sockfd; 
     char buffer[MAXLINE]; 
+    char send_buffer[MAXLINE];
     const char *hello = "Hello from server"; 
     struct sockaddr_in servaddr, cliaddr; 
       
@@ -24,6 +25,7 @@ int server_UDP_greeter() {
         exit(EXIT_FAILURE); 
     } 
       
+
     memset(&servaddr, 0, sizeof(servaddr)); 
     memset(&cliaddr, 0, sizeof(cliaddr)); 
       
@@ -41,10 +43,33 @@ int server_UDP_greeter() {
     } 
       
     socklen_t len;
-  int n; 
+    int n; 
   
     len = sizeof(cliaddr);  //len is value/result 
-  
+
+    std::string msg;
+
+    while (true)
+    {
+        n = recvfrom(sockfd, (char *)buffer, MAXLINE,  
+                    MSG_WAITALL, ( struct sockaddr *) &cliaddr, 
+                    &len); 
+        buffer[n] = '\0'; 
+        printf("Client>>  %s\n", buffer); 
+
+        //get message from stdin
+        std::cout << "Escreve uma resposta ";
+        std::getline(std::cin, msg);
+
+        // copy to send buffer
+        strncpy(send_buffer, msg.c_str(), MAXLINE);
+
+
+        sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM, (const struct sockaddr *) &cliaddr, len); 
+        std::cout<<">> "<< send_buffer <<std::endl;  
+    }
+
+    /*
     n = recvfrom(sockfd, (char *)buffer, MAXLINE,  
                 MSG_WAITALL, ( struct sockaddr *) &cliaddr, 
                 &len); 
@@ -54,6 +79,8 @@ int server_UDP_greeter() {
         MSG_CONFIRM, (const struct sockaddr *) &cliaddr, 
             len); 
     std::cout<<"Hello message sent."<<std::endl;  
+
+    */
       
     return 0; 
 }
