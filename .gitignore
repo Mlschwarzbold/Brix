@@ -5,8 +5,7 @@
 /Makefile
 /cmake_install.cmake
 
-# IDEs
-*.vscode/
+.cache
 
 # Generated objects
 *.o
