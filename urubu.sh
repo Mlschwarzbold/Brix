@@ -1,11 +1,14 @@
-#!/bin/bash
-
 BUILD_DIR="./build"
 DEFAULT_PORT=4000
 
 build() {
+    build_type="Debug"
+    if [ "$1" == "release" ]; then
+        build_type="Release"
+    fi
+
     mkdir "$BUILD_DIR"
-    cmake -S . -B "$BUILD_DIR" -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+    cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$build_type"
     cd "$BUILD_DIR" || exit 1
     make
     cd ..
@@ -13,13 +16,15 @@ build() {
 
 server() {
     port="${1:-$DEFAULT_PORT}"
-    build
+    shift
+    build "$@"
     "$BUILD_DIR/server/servidor" "$port"
 }
 
 client() {
     port="${1:-$DEFAULT_PORT}"
-    build
+    shift
+    build "$@"
     "$BUILD_DIR/client/cliente" "$port"
 }
 
@@ -35,7 +40,8 @@ clean() {
 # Dispatch based on the first argument
 case "$1" in
     build)
-        build
+        shift
+        build "$@"
         ;;
     server)
         shift
@@ -49,7 +55,7 @@ case "$1" in
         clean
         ;;
     *)
-        echo "Usage: $0 {build|server [port]|client [port]|clean}"
+        echo "Usage: $0 {build [release]|server [port] [release]|client [port] [release]|clean}"
         exit 1
         ;;
 esac
