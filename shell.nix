@@ -7,6 +7,6 @@
       cmake
       codespell
       cppcheck
-      gdb
+      lldb
     ];
 }
