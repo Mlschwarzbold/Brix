@@ -6,6 +6,7 @@
 /cmake_install.cmake
 
 .cache
+.envrc
 
 # Generated objects
 *.o

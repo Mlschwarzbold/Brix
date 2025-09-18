@@ -8,8 +8,6 @@
       codespell
       cppcheck
       gdb
+      nodejs-slim
     ];
-  shellHook = ''
-    export CXX="${pkgs.gcc}/bin/g++"
-  '';
 }

@@ -5,45 +5,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "(gdb) Attach",
-      "type": "cppdbg",
-      "request": "attach",
-      "program": "enter program name, for example ${workspaceFolder}/a.out",
-      "MIMode": "gdb",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        },
-        {
-          "description": "Set Disassembly Flavor to Intel",
-          "text": "-gdb-set disassembly-flavor intel",
-          "ignoreFailures": true
-        }
-      ]
-    },
-    {
-      "name": "(gdb) Attach Client",
-      "type": "cppdbg",
-      "request": "attach",
-      "program": "${workspaceFolder}/build/client/cliente",
-      "MIMode": "gdb",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        },
-        {
-          "description": "Set Disassembly Flavor to Intel",
-          "text": "-gdb-set disassembly-flavor intel",
-          "ignoreFailures": true
-        }
-      ]
-    },
-
-    {
       "name": "(gdb) Launch Client",
       "type": "cppdbg",
       "request": "launch",
@@ -68,26 +29,6 @@
         }
       ]
     },
-    {
-      "name": "(gdb) Attach Server",
-      "type": "cppdbg",
-      "request": "attach",
-      "program": "${workspaceFolder}/build/server/servidor",
-      "MIMode": "gdb",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        },
-        {
-          "description": "Set Disassembly Flavor to Intel",
-          "text": "-gdb-set disassembly-flavor intel",
-          "ignoreFailures": true
-        }
-      ]
-    },
-
     {
       "name": "(gdb) Launch Server",
       "type": "cppdbg",
