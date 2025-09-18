@@ -45,15 +45,24 @@
     "streambuf": "cpp",
     "typeinfo": "cpp",
     "ctime": "cpp"
-  },
-  "nixEnvSelector.nixFile": "${workspaceFolder}/shell.nix",
-  "C_Cpp.autocomplete": "disabled",
-  "C_Cpp.formatting": "disabled",
-  "C_Cpp.errorSquiggles": "disabled",
-  "C_Cpp.intelliSenseEngine": "disabled",
-  "clangd.arguments": ["-log=verbose", 
-                         "-pretty", 
-                         "--background-index", 
-                         //"--query-driver=/bin/arm-buildroot-linux-gnueabihf-g++", //for cross compile usage
-                         "--compile-commands-dir=/path/to/your/compile_commands_dir"]
+  },// Use clangd for code intelligence
+  "C_Cpp.intelliSenseEngine": "disabled",  // disable default MS IntelliSense
+  "clangd.path": "clangd",                 // nix-shell or devShell should provide clangd
+  "clangd.arguments": [
+    "--background-index",                  // index project in background
+    "--clang-tidy",                        // enable clang-tidy diagnostics
+    "--completion-style=detailed",
+    "--header-insertion=never"             // avoid noisy #include suggestions
+  ],
+
+  // Handle config changes cleanly
+  "clangd.onConfigChanged": "restart",
+
+  // CMake Tools integration
+  "cmake.buildDirectory": "${workspaceFolder}/build",
+  "cmake.sourceDirectory": "${workspaceFolder}",
+  "cmake.buildBeforeRun": true,
+
+  // Debugging experience
+  "debug.allowBreakpointsEverywhere": true,
 }

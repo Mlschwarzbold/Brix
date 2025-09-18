@@ -8,6 +8,5 @@
       codespell
       cppcheck
       gdb
-      nodejs-slim
     ];
 }
