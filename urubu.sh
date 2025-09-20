@@ -1,10 +1,14 @@
 BUILD_DIR="./build"
 DEFAULT_PORT=4000
 
+
 build() {
     build_type="Debug"
     if [ "$1" == "release" ]; then
+        echo "- Building Release"
         build_type="Release"
+
+        else echo "- Building Debug"
     fi
 
     mkdir "$BUILD_DIR"
@@ -16,25 +20,62 @@ build() {
 
 server() {
     port="${1:-$DEFAULT_PORT}"
-    shift
     build "$@"
+    clear
+    print_ip
+    echo
     "$BUILD_DIR/server/servidor" "$port"
 }
 
 client() {
     port="${1:-$DEFAULT_PORT}"
-    shift
     build "$@"
+    clear
+    print_ip
+    echo 
     "$BUILD_DIR/client/cliente" "$port"
 }
 
 clean() {
     if [ -d "$BUILD_DIR" ]; then
         echo "Cleaning build directory..."
-        rm -rf "$BUILD_DIR"
+        rm -rf "$BUILD_DIR" cmake_install.cmake CMakeCache.txt Makefile .cache CMakeFiles
+        
     else
         echo "Nothing to clean."
     fi
+}
+
+print_ip() {
+    echo "##### IP: $(ip -4 -o address show eth0 | awk '{print $4}') #####"
+}
+
+build_container() {
+    docker build . -f Dockerfile -t brix
+}
+
+network() {
+    # Create a custom Docker network (bridge)
+    docker network inspect brix-net >/dev/null 2>&1 || \
+    docker network create brix-net
+
+    # Start tmux session
+    SESSION="brix-session"
+    tmux new-session -d -s $SESSION
+
+    # Run server in first pane
+    tmux send-keys -t $SESSION "docker run --rm --network brix-net --name server -it brix server 4000" C-m
+
+    # Split window vertically, run first client
+    tmux split-window -h -t $SESSION
+    tmux send-keys -t $SESSION:0.1 "docker run --rm --network brix-net --name client1 -it brix client 5000" C-m
+
+    # Split again, run second client (below first client)
+    tmux split-window -v -t $SESSION:0.1
+    tmux send-keys -t $SESSION:0.2 "docker run --rm --network brix-net --name  client2 -it brix client 5001" C-m
+
+    # Attach to session
+    tmux attach -t $SESSION
 }
 
 # Dispatch based on the first argument
@@ -51,11 +92,21 @@ case "$1" in
         shift
         client "$@"
         ;;
+    print_ip)
+        print_ip
+        ;;
+    build_container)
+        build_container
+        ;;
+    network)
+        build_container
+        network
+        ;;
     clean)
         clean
         ;;
     *)
-        echo "Usage: $0 {build [release]|server [port] [release]|client [port] [release]|clean}"
+        echo "Usage: $0 {build [release]|server [port] [release]|client [port] [release]|build_container|network|show_ip|clean}"
         exit 1
         ;;
 esac

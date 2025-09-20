@@ -8,5 +8,7 @@
       codespell
       cppcheck
       lldb
+      docker
+      tmux
     ];
 }
