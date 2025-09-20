@@ -63,6 +63,9 @@ network() {
     SESSION="brix-session"
     tmux new-session -d -s $SESSION
 
+    # Enable mouse mode inside tmux
+    tmux set-option -t $SESSION mouse on
+
     # Run server in first pane
     tmux send-keys -t $SESSION "docker run --rm --network brix-net --name server -it brix server 4000" C-m
 
