@@ -24,6 +24,14 @@ int server_UDP_greeter() {
         perror("socket creation failed"); 
         exit(EXIT_FAILURE); 
     } 
+
+    // Enable broadcast
+    int broadcastEnable = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable)) < 0) {
+        perror("setsockopt (SO_BROADCAST) failed");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
       
 
     memset(&servaddr, 0, sizeof(servaddr)); 
@@ -33,6 +41,9 @@ int server_UDP_greeter() {
     servaddr.sin_family    = AF_INET; // IPv4 
     servaddr.sin_addr.s_addr = INADDR_ANY; 
     servaddr.sin_port = htons(PORT); 
+
+    // binding udp socket to subnet broadcast address
+    //servaddr.sin_addr.s_addr = inet_addr("192.168.0.255");
       
     // Bind the socket with the server address 
     if ( bind(sockfd, (const struct sockaddr *)&servaddr,  

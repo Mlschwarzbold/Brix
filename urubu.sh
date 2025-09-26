@@ -46,8 +46,11 @@ clean() {
     fi
 }
 
+
 print_ip() {
-    echo "##### IP: $(ip -4 -o address show eth0 | awk '{print $4}') #####"
+    network_device=$(ip route get 8.8.8.8 | awk '{print $5}')
+    echo "##### Network Device: $network_device #####"
+    echo "##### IP: $(ip -4 -o address show $network_device | awk '{print $4}') #####"
 }
 
 build_container() {

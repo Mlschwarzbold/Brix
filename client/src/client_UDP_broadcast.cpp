@@ -24,6 +24,13 @@ int client_UDP_broadcast() {
         perror("socket creation failed"); 
         exit(EXIT_FAILURE); 
     } 
+
+    int broadcastEnable = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable)) < 0) {
+        perror("setsockopt (SO_BROADCAST) failed");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
   
     memset(&servaddr, 0, sizeof(servaddr)); 
 
@@ -31,7 +38,7 @@ int client_UDP_broadcast() {
     servaddr.sin_family = AF_INET; 
     servaddr.sin_port = htons(PORT); 
     //servaddr.sin_addr.s_addr = INADDR_ANY; 
-    servaddr.sin_addr.s_addr = inet_addr("192.168.0.10"); // this is my server IP address
+    servaddr.sin_addr.s_addr = inet_addr("192.168.0.255"); // this is my server IP address
       
     int n;
     socklen_t len; 
