@@ -29,6 +29,9 @@ int main(int argc, char *argv[]) {
     std::cout << "Data atual: " << getCurrentDateString() << " "
               << getCurrentTimeString() << std::endl;
 
+    // db_manager testing
+    db_manager::demo();
+
     // Initiate greeter service
     udp_server_greeter::start_server();
 
