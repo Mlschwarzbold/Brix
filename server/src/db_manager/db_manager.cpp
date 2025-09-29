@@ -24,17 +24,12 @@ const db_response get_client_info(in_addr_t client_ip) {
     const auto found_object = database_records.find(temp_record);
 
     if (found_object == database_records.end()) {
-        return {false, {}};
+        return {false, {}, db_response::Description::NOT_FOUND};
     }
 
-    return {true, found_object};
+    return {true, found_object, db_response::Description::SUCCESS};
 }
 
-// Registers a new entry for the client in the database records.
-// - If the client already exists, returns false in success and the existing
-// client on the server in result.
-// - If the client does not exist, returns true in success and a copy of the
-// newly inserted client in result.
 const db_response register_client(in_addr_t client_ip) {
     // Generate new client template using provided ip
     client_record new_client = {client_ip, STARTING_BALANCE, STARTING_REQUEST};
@@ -45,7 +40,14 @@ const db_response register_client(in_addr_t client_ip) {
     // Insertion result already operates like the behaviour defined for the
     // function, where first contains the iterator to the client and second
     // contains the operation result
-    return {insertion_result.second, insertion_result.first};
+    const bool insertion_success = insertion_result.second;
+    if (insertion_success) {
+        return {true, insertion_result.first,
+                db_response::Description::SUCCESS};
+    } else {
+        return {false, insertion_result.first,
+                db_response::Description::NOT_FOUND};
+    }
 };
 
 void print_record(client_record record) {
