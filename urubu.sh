@@ -1,6 +1,7 @@
 BUILD_DIR="./build"
 DEFAULT_PORT=4000
 
+set -e
 
 build() {
     build_type="Debug"
@@ -11,7 +12,7 @@ build() {
         else echo "- Building Debug"
     fi
 
-    mkdir "$BUILD_DIR"
+    mkdir -p "$BUILD_DIR" 
     cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$build_type"
     cd "$BUILD_DIR" || exit 1
     make
