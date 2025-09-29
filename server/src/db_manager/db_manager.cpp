@@ -1,27 +1,10 @@
 
 
 #include "db_manager.h"
-#include <arpa/inet.h>
-#include <iostream>
-#include <netinet/in.h>
-#include <set>
 
 namespace db_manager {
 
-const unsigned long int STARTING_BALANCE = 200;
-const unsigned int STARTING_REQUEST = 1;
-
-// This is how a client is represented inside the database
-struct client_record {
-    in_addr_t client_ip;
-    unsigned long int client_balance;
-    unsigned int last_request;
-};
-
-struct db_response {
-    bool success;
-    std::set<client_record>::iterator result;
-};
+// client_record boilerplate
 
 bool operator==(const client_record &record1, const client_record &record2) {
     return record1.client_ip == record2.client_ip;
@@ -35,11 +18,6 @@ bool operator<(const client_record &record1, const client_record &record2) {
 // a red-black tree for efficient storage
 std::set<client_record> database_records;
 
-// Searches for a given client inside the database.
-// - If found, returns true in success and an iterator to the record inside
-// result.
-// - If NOT found, returns false in success and the contents of result are
-// invalid.
 const db_response get_client_info(in_addr_t client_ip) {
     const client_record temp_record = {client_ip};
 
