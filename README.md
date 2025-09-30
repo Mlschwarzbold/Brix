@@ -64,7 +64,7 @@ Existem dois tipos de mensagens que podem ser enviados do cliente para o servido
         - `AMOUNT`: Quantidade inteira a ser transferida.
 
 ## Servidor -> Cliente
-
+./
 Existem dois tipos de mensagens que podem ser enviados do servidor para o cliente:
 
 - Localização (`LOC`): Informa em qual IP e porta o servidor está escutando por requests.

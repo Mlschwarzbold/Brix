@@ -1,6 +1,7 @@
 #include "date_time_utils.h"
 #include "db_manager/db_manager.h"
 #include "greeter/server_UDP_greeter.h"
+#include "greeter/server_discovery_service.h"
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -33,7 +34,8 @@ int main(int argc, char *argv[]) {
     db_manager::demo();
 
     // Initiate greeter service
-    udp_server_greeter::start_server();
+    //udp_server_greeter::start_server();
+    server_discovery_service(4000, "217.0.0.1", 4001);
 
     return 0;
 }
