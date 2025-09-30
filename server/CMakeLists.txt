@@ -1,6 +1,7 @@
 add_executable(
     servidor src/main.cpp
-    src/server_UDP_greeter.cpp
+    src/greeter/server_UDP_greeter.cpp
+    src/db_manager/db_manager.cpp
     )
 
 # Link with common library if it exists
