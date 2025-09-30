@@ -10,5 +10,6 @@
       lldb
       docker
       tmux
+      gtest
     ];
 }

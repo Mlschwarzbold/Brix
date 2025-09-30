@@ -17,17 +17,17 @@ Ver shell.nix
 ## Comando para compilar projeto
 
 ```
-./urubu.sh build
+./brix.sh build
 ```
 
 ## Comando para executar o projeto
 
 ```
-./urubu.sh server <porta>
+./brix.sh server <porta>
 ```
 
 ```
-./urubu.sh client <porta>
+./brix.sh client <porta>
 ```
 
 # Formato de mensagens
@@ -57,7 +57,7 @@ Existem dois tipos de mensagens que podem ser enviados do cliente para o servido
 
 - Descoberta (`DSC`): Pede em qual IP o servidor está atendendo requisições.
     - Argumentos: `[]`
-    
+
 - Requisição (`REQ`): Solicita o servidor que realize uma transferência para a conta de outro cliente.
     - Argumentos:  `[<RECEIVER_ACCOUNT_IP>, <AMOUNT>]`
         - `RECEIVER_ACCOUNT_IP`: Ip de destino da transferência.
