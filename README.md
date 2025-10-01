@@ -84,3 +84,15 @@ Existem dois tipos de mensagens que podem ser enviados do servidor para o client
 
 # System architecture
 ![system architecture](docs/architecture.png)
+
+
+
+# Discovery Protocol - modificações
+
+As mensagens de Discovery e Modificação foram modificadas
+
+Como o protocolo é muito mais simples que o sistema de requisições, as mensagens também podem ser
+
+Mensagem do cliente: DIS
+
+Resposta do servidor: LOC <ip> <port> END
