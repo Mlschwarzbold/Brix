@@ -12,6 +12,6 @@ WORKDIR /brix
 
 COPY . /brix
 
-RUN ./urubu.sh clean
+RUN ./brix.sh clean
 
-ENTRYPOINT ["sh", "/brix/urubu.sh"]
+ENTRYPOINT ["sh", "/brix/brix.sh"]

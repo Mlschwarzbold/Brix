@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
               << getCurrentTimeString() << std::endl;
 
     // db_manager testing
-    db_manager::demo();
+    db_manager::DbManager db = db_manager::DbManager();
 
     // Initiate greeter service
     //udp_server_greeter::start_server();
