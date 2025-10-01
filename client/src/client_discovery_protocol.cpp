@@ -40,6 +40,16 @@ int client_discovery_protocol(char* return_server_ip, int* return_server_port, c
         close(sockfd);
         exit(EXIT_FAILURE);
     }
+
+    // timeout
+    struct timeval tv;
+    tv.tv_sec = 0;  // seconds
+    tv.tv_usec = 10; // microseconds
+    if(setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+        perror("setsockopt (SO_RCVTIMEO) failed");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
   
     memset(&servaddr, 0, sizeof(servaddr)); 
 
@@ -57,15 +67,15 @@ int client_discovery_protocol(char* return_server_ip, int* return_server_port, c
     strncpy(send_buffer, discovery_message, MAXLINE);
     sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
 
-    std::cout<<" Sent Discovery Message " <<std::endl; 
+    std::cout<<"Sent Discovery Message " <<std::endl; 
 
     // espera receber mensagem
 
-    std::cout<<"before>> : "<<buffer<<std::endl;
+    //std::cout<<"before>> : "<<buffer<<std::endl;
     n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
     std::cout<<" lenght: " <<n<<std::endl;
     buffer[n] = '\0';
-    std::cout<<"Server>> : "<<buffer<<std::endl;
+    //std::cout<<"Server>> : "<<buffer<<std::endl;
 
 
     // Validate and extract IP and Port from response message
@@ -119,8 +129,8 @@ int extract_ip_and_port_from_response(char* response, char* return_ip, int* retu
         return -4; // INVALID_FORMAT
     }
 
-    std::cout << "Extracted IP: " << ip_str << std::endl;
-    std::cout << "Extracted Port: " << port_str << std::endl;
+    //std::cout << "Extracted IP: " << ip_str << std::endl;
+    //std::cout << "Extracted Port: " << port_str << std::endl;
 
 
     // validate IP address
