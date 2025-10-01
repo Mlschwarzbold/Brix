@@ -70,18 +70,18 @@ int client_discovery_protocol(char* return_server_ip, int* return_server_port, c
     // copy to send buffer
     strncpy(send_buffer, discovery_message, MAXLINE);
 
-    while(num_retries <= max_retries) {
+    while(num_retries < max_retries) {
         
         // send discovery message
         sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
-        std::cout<<"Sent Discovery Message " <<std::endl; 
+        if(num_retries == 0) std::cout<<"Sent Discovery Broadcast " <<std::endl; 
 
         // espera receber mensagem
         n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
         //std::cout<<" lenght: " <<n<<std::endl;
 
         if(n < 0) {
-            std::cerr << "Timeout or error receiving response, retrying... (" << num_retries+1 << "/" << max_retries + 1 << ")" << std::endl;
+            std::cerr << "Timeout or error receiving response, retrying... (" << num_retries+1 << "/" << max_retries << ")" << std::endl;
             num_retries++;
             continue; // timeout or error, attempt again
         }
@@ -102,7 +102,7 @@ int client_discovery_protocol(char* return_server_ip, int* return_server_port, c
         break;
     }
 
-    if (num_retries > max_retries) {
+    if (num_retries >= max_retries) {
         std::cerr << "Could not find server" << std::endl;
         close(sockfd);
         return -1; // max retries reached

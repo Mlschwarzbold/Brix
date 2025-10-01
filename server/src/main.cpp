@@ -5,6 +5,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <thread>
 
 int main(int argc, char *argv[]) {
     // Validação dos argumentos da linha de comando
@@ -35,7 +36,11 @@ int main(int argc, char *argv[]) {
 
     // Initiate greeter service
     //udp_server_greeter::start_server();
-    server_discovery_service(4000, "217.0.0.1", 4001);
+    //udp_server_greeter::server_discovery_service(4000, "217.0.0.1", 4001);
 
+    std::thread greeter_thread(udp_server_greeter::start_server);
+ 
+    std::cout << "greeter thread started" << std::endl;
+    greeter_thread.join();
     return 0;
 }

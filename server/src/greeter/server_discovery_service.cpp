@@ -9,10 +9,10 @@
 
 #define MAXLINE 1024
 
+namespace udp_server_greeter {
 // Server Discovery Service
 // This function implements a UDP server that listens for discovery requests from clients
 // When a discovery request is received, it responds with the requests server's IP and port
-
 void server_discovery_service(int discovery_service_port, char* requests_server_ip, int requests_server_port){
     int sockfd;
     char buffer[MAXLINE];
@@ -76,3 +76,5 @@ void server_discovery_service(int discovery_service_port, char* requests_server_
     }
 
 }
+
+} // namespace udp_server_greeter
