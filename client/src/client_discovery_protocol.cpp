@@ -42,9 +42,12 @@ int client_discovery_protocol(char* return_server_ip, int* return_server_port, c
     }
 
     // timeout
+    // weird struct takes seconds and microseconds.
+    // microseconds cant be greater than 1 million
+    // so we gotta do weird math to convert milliseconds to both seconds and microseconds
     struct timeval tv;
-    tv.tv_sec = 0;  // seconds
-    tv.tv_usec = 10; // microseconds
+    tv.tv_sec = initial_timeout_ms / 1000;  
+    tv.tv_usec = (initial_timeout_ms % 1000) * 1000; // microseconds
     if(setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
         perror("setsockopt (SO_RCVTIMEO) failed");
         close(sockfd);
@@ -61,31 +64,48 @@ int client_discovery_protocol(char* return_server_ip, int* return_server_port, c
     int n;
     socklen_t len; 
     std::string msg;
+    int num_retries = 0;
 
 
     // copy to send buffer
     strncpy(send_buffer, discovery_message, MAXLINE);
-    sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
 
-    std::cout<<"Sent Discovery Message " <<std::endl; 
+    while(num_retries <= max_retries) {
+        
+        // send discovery message
+        sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+        std::cout<<"Sent Discovery Message " <<std::endl; 
 
-    // espera receber mensagem
+        // espera receber mensagem
+        n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
+        //std::cout<<" lenght: " <<n<<std::endl;
 
-    //std::cout<<"before>> : "<<buffer<<std::endl;
-    n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL, (struct sockaddr *) &servaddr, &len);
-    std::cout<<" lenght: " <<n<<std::endl;
-    buffer[n] = '\0';
-    //std::cout<<"Server>> : "<<buffer<<std::endl;
+        if(n < 0) {
+            std::cerr << "Timeout or error receiving response, retrying... (" << num_retries+1 << "/" << max_retries + 1 << ")" << std::endl;
+            num_retries++;
+            continue; // timeout or error, attempt again
+        }
+        // message received
+        buffer[n] = '\0';
 
+        // Validate and extract IP and Port from response message
+        // puts values direcly into return_server_ip and return_server_port
+        address_is_valid = extract_ip_and_port_from_response(buffer, return_server_ip, return_server_port);
 
-    // Validate and extract IP and Port from response message
-    // puts values direcly into return_server_ip and return_server_port
-    address_is_valid = extract_ip_and_port_from_response(buffer, return_server_ip, return_server_port);
+        if (address_is_valid != 0) {
+            std::cerr << "Invalid response message received: " << buffer << std::endl;
+            num_retries++;
+            continue; // invalid message, attempt again
+        }
 
-    if (address_is_valid != 0) {
-        std::cerr << "Invalid response message received: " << buffer << std::endl;
+        // valid message received
+        break;
+    }
+
+    if (num_retries > max_retries) {
+        std::cerr << "Could not find server" << std::endl;
         close(sockfd);
-        return -1; // error
+        return -1; // max retries reached
     }
 
     close(sockfd); 

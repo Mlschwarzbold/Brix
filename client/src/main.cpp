@@ -36,9 +36,12 @@ int main(int argc, char *argv[]) {
   // Broadcast para descobrir IP do servidor
   char return_server_ip[INET_ADDRSTRLEN];
   int return_server_port;
-  client_discovery_protocol(return_server_ip, &return_server_port, "192.168.0.255", port, -1, -1);
-
-  std::cout<< "port: " << return_server_port << " ip: " << return_server_ip << std::endl;
-
+  if(client_discovery_protocol(return_server_ip, &return_server_port, "192.168.0.255", port, 5, 1000) == 0) {
+      std::cout << "Server found at IP: " << return_server_ip << " Port: " << return_server_port << std::endl;
+  } else {
+      std::cerr << "Server not found" << std::endl;
+      return 1;
+  }
+  
   return 0;
 }
