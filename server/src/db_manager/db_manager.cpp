@@ -4,7 +4,6 @@
 #include <iostream>
 
 namespace db_manager {
-
 DbManager::DbManager() {
     // The records are kept in an unordere map (indexed by their client_ip,
     // using a hash table  for efficient storage
@@ -17,28 +16,6 @@ DbManager::DbManager() {
     // Client locks are used to avoid two threads trying to read or modify info
     // about two clients at the same time.
     client_locks = std::unordered_map<in_addr_t, pthread_mutex_t *>();
-
-    // Register a few clients
-    register_client(inet_addr("10.0.0.1"));
-    register_client(inet_addr("10.0.0.2"));
-
-    // Make a transaction
-    make_transaction(inet_addr("10.0.0.1"), inet_addr("10.0.0.2"), 50);
-
-    // Fetch info about the sender and receiver
-    const auto client_search = get_client_info(inet_addr("10.0.0.1"));
-
-    std::cout << "Request result: " << client_search.success << std::endl;
-    if (client_search.success) {
-        print_record(*client_search.record);
-    }
-
-    const auto client_search2 = get_client_info(inet_addr("10.0.0.2"));
-
-    std::cout << "Request result: " << client_search2.success << std::endl;
-    if (client_search2.success) {
-        print_record(*client_search2.record);
-    }
 }
 
 DbManager::~DbManager() {

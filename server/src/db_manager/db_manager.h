@@ -6,7 +6,6 @@
 #include <semaphore.h>
 #include <unordered_map>
 namespace db_manager {
-void demo();
 
 const unsigned long int STARTING_BALANCE = 200;
 const unsigned int STARTING_REQUEST = 1;
