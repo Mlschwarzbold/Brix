@@ -9,39 +9,42 @@
 #define INET_ADDRSTRLEN 16 // xxx.xxx.xxx.xxx\0
 
 int main(int argc, char *argv[]) {
-  // Validação dos argumentos da linha de comando
-  if (argc < 2) {
-    std::cerr << "Uso: ./cliente <porta>" << std::endl;
-    return 1;
-  }
-  // recebe e valida porta do servidor
-  int port;
-  try {
-    port = std::stoi(argv[1]);
-  } catch (const std::invalid_argument &e) {
-    std::cerr << "Porta inválida: " << argv[1] << std::endl;
-    return 1;
-  }
-  if (port < 0 || port > 65535) {
-    std::cerr << "Valores válidos: 0 e 65535" << std::endl;
-    return 1;
-  }
+    // Validação dos argumentos da linha de comando
+    if (argc < 2) {
+        std::cerr << "Uso: ./cliente <porta>" << std::endl;
+        return 1;
+    }
+    // recebe e valida porta do servidor
+    int port;
+    try {
+        port = std::stoi(argv[1]);
+    } catch (const std::invalid_argument &e) {
+        std::cerr << "Porta inválida: " << argv[1] << std::endl;
+        return 1;
+    }
+    if (port < 0 || port > 65535) {
+        std::cerr << "Valores válidos: 0 e 65535" << std::endl;
+        return 1;
+    }
 
-  // Porta válida, iniciar cliente
+    // Porta válida, iniciar cliente
 
-  std::cout << "Cliente iniciado na porta: " << port << std::endl;
-  std::cout << "Data atual: " << getCurrentDateString() << " "
-            << getCurrentTimeString() << std::endl;
+    std::cout << "Cliente iniciado na porta: " << port << std::endl;
+    std::cout << "Data atual: " << getCurrentDateString() << " "
+              << getCurrentTimeString() << std::endl;
 
-  // Broadcast para descobrir IP do servidor
-  char return_server_ip[INET_ADDRSTRLEN];
-  int return_server_port;
-  if(client_discovery_protocol(return_server_ip, &return_server_port, "192.168.0.255", port, 5, 1000) == 0) {
-      std::cout << "Server found at IP: " << return_server_ip << " Port: " << return_server_port << std::endl;
-  } else {
-      std::cerr << "Server not found" << std::endl;
-      return 1;
-  }
-  
-  return 0;
+    // Broadcast para descobrir IP do servidor
+    char return_server_ip[INET_ADDRSTRLEN];
+    int return_server_port;
+    if (client_discovery_protocol(return_server_ip, &return_server_port,
+                                  (char *)"192.168.0.255", port, 5,
+                                  1000) == 0) {
+        std::cout << "Server found at IP: " << return_server_ip
+                  << " Port: " << return_server_port << std::endl;
+    } else {
+        std::cerr << "Server not found" << std::endl;
+        return 1;
+    }
+
+    return 0;
 }
