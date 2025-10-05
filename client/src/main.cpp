@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
     char return_server_ip[INET_ADDRSTRLEN];
     int return_server_port;
     if (client_discovery_protocol(return_server_ip, &return_server_port,
-                                  (char *)"192.168.0.255", port, 5,
+                                  (char *)"255.255.255.255", 4000, 5,
                                   1000) == 0) {
         std::cout << "Server found at IP: " << return_server_ip
                   << " Port: " << return_server_port << std::endl;
