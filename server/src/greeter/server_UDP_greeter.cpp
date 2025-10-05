@@ -19,6 +19,8 @@ int start_server() {
 
     udp_server_greeter::server_discovery_service(4000, (char *)"217.0.0.1",
                                                  4001);
+
+    /*
     int sockfd;
     char buffer[MAXLINE + 1];
     char send_buffer[MAXLINE + 1];
@@ -82,7 +84,7 @@ int start_server() {
         std::cout << ">> " << send_buffer << std::endl;
     }
 
-    /*
+    
     n = recvfrom(sockfd, (char *)buffer, MAXLINE,
     MSG_WAITALL, ( struct sockaddr *) &cliaddr,
     &len);

@@ -28,23 +28,26 @@ int main(int argc, char *argv[]) {
     }
 
     // Porta válida, iniciar cliente
-
-    std::cout << "Cliente iniciado na porta: " << port << std::endl;
-    std::cout << "Data atual: " << getCurrentDateString() << " "
-              << getCurrentTimeString() << std::endl;
+    //std::cout << "Cliente iniciado na porta: " << port << std::endl;
 
     // Broadcast para descobrir IP do servidor
     char return_server_ip[INET_ADDRSTRLEN];
     int return_server_port;
     if (client_discovery_protocol(return_server_ip, &return_server_port,
-                                  (char *)"192.168.0.255", port, 5,
+                                  (char *)"255.255.255.255", port, 5,
                                   1000) == 0) {
-        std::cout << "Server found at IP: " << return_server_ip
-                  << " Port: " << return_server_port << std::endl;
+        //std::cout << "Server found at IP: " << return_server_ip << " Port: " << return_server_port << std::endl;
     } else {
         std::cerr << "Server not found" << std::endl;
         return 1;
     }
 
+
+    // Formato da mensagem de inicio do cliente
+    // DATE <YYYY-MM-DD> TIME <HH:MM:SS> server addr <IP_ADDRESS>:<PORT >
+    // 2024-10-01 18:37:00 server_addr 10.1.1.20:4001
+
+    std::cout << getCurrentDateString() << " " << getCurrentTimeString() << " server_addr " << return_server_ip << ":" << return_server_port << std::endl;
+
     return 0;
-}
+} 
