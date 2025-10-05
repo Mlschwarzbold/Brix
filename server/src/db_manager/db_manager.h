@@ -2,10 +2,8 @@
 #define DB_MANAGER_H
 
 #include <arpa/inet.h>
-#include <iostream>
 #include <netinet/in.h>
 #include <semaphore.h>
-#include <set>
 #include <unordered_map>
 namespace db_manager {
 void demo();
@@ -84,7 +82,7 @@ class DbManager {
     //     in the database.
     const db_response make_transaction(in_addr_t sender_ip,
                                        in_addr_t receiver_ip,
-                                       long int transfer_amount);
+                                       unsigned long int transfer_amount);
 
   private:
     std::unordered_map<in_addr_t, pthread_mutex_t *> client_locks;
@@ -94,6 +92,13 @@ class DbManager {
     // using a hash table  for efficient storage
     std::unordered_map<in_addr_t, client_record> database_records;
     void print_record(client_record client);
+
+    // Helper functions to give more semantic to database locking operations
+    void lock_database();
+    void unlock_database();
+
+    void lock_client(in_addr_t client_ip);
+    void unlock_client(in_addr_t client_ip);
 };
 
 } // namespace db_manager
