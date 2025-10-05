@@ -3,21 +3,23 @@
 #include "server_discovery_service.h"
 #include <arpa/inet.h>
 #include <bits/stdc++.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-#define PORT 8080
-#define MAXLINE 1024
+const int PORT = 8080;
+const int MAXLINE = 1024;
 
 namespace udp_server_greeter {
 
 int start_server() {
 
-    udp_server_greeter::server_discovery_service(4000, (char *)"217.0.0.1",
+    const auto self_ip = get_self_ip();
+
+    udp_server_greeter::server_discovery_service(4000, (char *)self_ip.c_str(),
                                                  4001);
 
     /*
@@ -99,4 +101,29 @@ int start_server() {
 
     return 0;
 }
+
+// Stupid trick to get the local ip of server:
+// Figure out what is the hostname of the computer.
+// Use gethostbyname to get the ip of the given hostname (which in this case is
+// just the ip of this computer).
+// I wish there was a simpler way to do this (glances at getaddrinfo)
+// based off:
+// https://www.tutorialspoint.com/how-to-get-the-ip-address-of-local-computer-using-c-cplusplus
+std::string get_self_ip() {
+    char hostname[256];
+
+    if (gethostname(hostname, sizeof(hostname)) == -1) {
+        return 0;
+    }
+
+    hostent *host_entry = gethostbyname(hostname);
+    if (host_entry == nullptr) {
+        return 0;
+    }
+
+    in_addr *addr = (in_addr *)host_entry->h_addr_list[0];
+
+    return inet_ntoa(*addr);
+}
+
 } // namespace udp_server_greeter
