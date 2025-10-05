@@ -13,9 +13,8 @@
 
 int client_UDP_broadcast() {
     int sockfd;
-    char buffer[MAXLINE];
-    char send_buffer[MAXLINE];
-    const char *hello = "Hello from client";
+    char buffer[MAXLINE + 1];
+    char send_buffer[MAXLINE + 1];
     struct sockaddr_in servaddr;
 
     // Creating socket file descriptor

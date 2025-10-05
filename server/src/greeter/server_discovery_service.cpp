@@ -11,16 +11,19 @@
 
 namespace udp_server_greeter {
 // Server Discovery Service
-// This function implements a UDP server that listens for discovery requests from clients
-// When a discovery request is received, it responds with the requests server's IP and port
-void server_discovery_service(int discovery_service_port, char* requests_server_ip, int requests_server_port){
+// This function implements a UDP server that listens for discovery requests
+// from clients When a discovery request is received, it responds with the
+// requests server's IP and port
+void server_discovery_service(int discovery_service_port,
+                              char *requests_server_ip,
+                              int requests_server_port) {
     int sockfd;
     char buffer[MAXLINE];
     char send_buffer[MAXLINE];
-    const char *hello = "Hello from server";
     struct sockaddr_in servaddr, cliaddr;
 
-    std::cout << "Starting Discovery Service on port " << discovery_service_port << std::endl;
+    std::cout << "Starting Discovery Service on port " << discovery_service_port
+              << std::endl;
 
     // Creating socket file descriptor
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -45,7 +48,6 @@ void server_discovery_service(int discovery_service_port, char* requests_server_
     servaddr.sin_addr.s_addr = INADDR_ANY;
     servaddr.sin_port = htons(discovery_service_port);
 
-
     // Bind the socket with the server address
     if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) <
         0) {
@@ -61,20 +63,20 @@ void server_discovery_service(int discovery_service_port, char* requests_server_
     std::string msg;
 
     // Generate response message
-    snprintf(send_buffer, sizeof(send_buffer), "LOC %s %d END", requests_server_ip, requests_server_port);
+    snprintf(send_buffer, sizeof(send_buffer), "LOC %s %d END",
+             requests_server_ip, requests_server_port);
 
     while (true) {
         n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL,
                      (struct sockaddr *)&cliaddr, &len);
         buffer[n] = '\0';
-        std::cout << "Discovery request from: " << inet_ntoa(cliaddr.sin_addr) << ":" << ntohs(cliaddr.sin_port) << std::endl;
-
+        std::cout << "Discovery request from: " << inet_ntoa(cliaddr.sin_addr)
+                  << ":" << ntohs(cliaddr.sin_port) << std::endl;
 
         sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM,
                (const struct sockaddr *)&cliaddr, len);
         std::cout << "Location message delivered." << std::endl;
     }
-
 }
 
 } // namespace udp_server_greeter
