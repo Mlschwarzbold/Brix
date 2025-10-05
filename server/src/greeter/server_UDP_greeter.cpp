@@ -105,6 +105,8 @@ int start_server() {
 // Use gethostbyname to get the ip of the given hostname (which in this case is
 // just the ip of this computer).
 // I wish there was a simpler way to do this (glances at getaddrinfo)
+// based off:
+// https://www.tutorialspoint.com/how-to-get-the-ip-address-of-local-computer-using-c-cplusplus
 std::string get_self_ip() {
     char hostname[256];
 
