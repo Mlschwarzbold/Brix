@@ -177,6 +177,46 @@ DbManager::make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
     return {true, sender, db_response::SUCCESS};
 }
 
+const db_response DbManager::remove_client(in_addr_t client_ip) {
+    // Get lock to the client
+    lock_database();
+
+    try {
+        lock_client(client_ip);
+    } catch (std::out_of_range const &) {
+        unlock_database();
+        return {false, NULL, db_response::NOT_FOUND};
+    }
+
+    // Finished getting the lock
+    unlock_database();
+
+    // Remove the client from the database
+    auto removed_client_amout = database_records.erase(client_ip);
+    if (removed_client_amout == 0) {
+        std::cerr << "[DATABASE ERROR]: Client removal failed after mutex "
+                     "acquisition succeded!"
+                  << std::endl;
+        return {false, NULL, db_response::NOT_FOUND};
+    }
+
+    lock_database();
+    unlock_client(client_ip);
+    auto removed_lock_amount = client_locks.erase(client_ip);
+    unlock_database();
+
+    if (removed_lock_amount == 0) {
+        std::cerr << "[DATABASE ERROR]: Client lock removal failed after mutex "
+                     "acquisition succeded!"
+                  << std::endl;
+        return {false, NULL, db_response::NOT_FOUND};
+    }
+
+    return {true, NULL, db_response::SUCCESS
+
+    };
+}
+
 void DbManager::print_record(client_record client) {
     struct in_addr temp_addr;
     temp_addr.s_addr = client.ip;
@@ -197,7 +237,14 @@ void DbManager::lock_client(in_addr_t client_ip) {
 }
 
 void DbManager::unlock_client(in_addr_t client_ip) {
-    pthread_mutex_unlock(client_locks.at(client_ip));
+    try {
+        pthread_mutex_unlock(client_locks.at(client_ip));
+    } catch (std::out_of_range const &) {
+        std::cerr << "[DATABASE ERROR]: Failed to unlock a client mutex after "
+                     "it has presumably been locked! The system is probably in "
+                     "a critical state!"
+                  << std::endl;
+    }
 }
 
 } // namespace db_manager

@@ -62,26 +62,30 @@ class DbManager {
 
     // Registers a transaction between two clients.
     // Transfers `amount` from the sender's balance to the receiver's balance,
-    // first validating it is enought to actually fulfill the request.
-    // FIXME: I am still not 100% sure this is the correct way to implement
-    // this. If the request is sucessful (i.e. the sender had enough balance to
-    // send to that ip AND the sender and receiver are registered in the
-    // system), returns true inside success, otherwise, returns false. Either
-    // way, it returns a copy of the sender in the result field, with the
-    // updated balance in case of success.
+    // first validating it is enought to actually fulfill the request. If the
+    // request is successful (i.e. the sender had enough balance to send to that
+    // ip AND the sender and receiver are registered in the system), returns
+    // true inside success, otherwise, returns false. Either way, it returns a
+    // copy of the sender in the result field, with the updated balance in case
+    // of success.
     // - Possible failures:
     //   # `INSUFFICIENT_BALANCE` - The sender did not have sufficient balance
-    //   to
-    //     fulfill the transaction
+    //     to fulfill the transaction
     //   # `UNKNOWN_SENDER` - The ip provided for the sender is not registered
-    //   in
-    //     the database.
+    //     in the database.
     //   # `UNKNOWN_RECEIVER` - The ip provided for the receiver is not
     //   registered
     //     in the database.
     const db_response make_transaction(in_addr_t sender_ip,
                                        in_addr_t receiver_ip,
                                        unsigned long int transfer_amount);
+
+    // Removes a client's entry from the database records. The value of `record`
+    // will always be null, independent of success or failure.
+    // - Possible failures:
+    //   # `NOT_FOUND` - The client was not found inside the database records.
+    //     Either it was already removed or it was never registered.
+    const db_response remove_client(in_addr_t client_ip);
 
   private:
     std::unordered_map<in_addr_t, pthread_mutex_t *> client_locks;
