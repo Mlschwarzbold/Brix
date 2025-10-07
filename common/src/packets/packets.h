@@ -21,11 +21,11 @@ class Packet {
     long int seq_num;
     in_addr_t receiver_ip;
     unsigned long int transfer_amount;   
-    Packet(Packet_type type, long int seq, in_addr_t r_ip, unsigned long int ammount) {
+    Packet(Packet_type type, long int seq, in_addr_t r_ip, unsigned long int amount) {
       seq_num = seq;
       packet_type = type;
       receiver_ip = r_ip;
-      transfer_amount = ammount;
+      transfer_amount = amount;
     }
 }; 
 
