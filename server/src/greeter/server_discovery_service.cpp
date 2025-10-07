@@ -7,9 +7,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define MAXLINE 1024
 
 namespace udp_server_greeter {
+
+const int MAXLINE = 1024;
+
 // Server Discovery Service
 // This function implements a UDP server that listens for discovery requests
 // from clients When a discovery request is received, it responds with the
@@ -18,8 +20,8 @@ void server_discovery_service(int discovery_service_port,
                               char *requests_server_ip,
                               int requests_server_port) {
     int sockfd;
-    char buffer[MAXLINE];
-    char send_buffer[MAXLINE];
+    char buffer[MAXLINE+1];
+    char send_buffer[MAXLINE+1];
     struct sockaddr_in servaddr, cliaddr;
 
     std::cout << "Starting Discovery Service on port " << discovery_service_port

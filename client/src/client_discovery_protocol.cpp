@@ -84,6 +84,8 @@ int client_discovery_protocol(char *return_server_ip, int *return_server_port,
                      (struct sockaddr *)&servaddr, &len);
         // std::cout<<" lenght: " <<n<<std::endl;
 
+        std::cout << buffer << std::endl;
+
         if (n < 0) {
             std::cerr << "Timeout or error receiving response, retrying... ("
                       << num_retries + 1 << "/" << max_retries << ")"

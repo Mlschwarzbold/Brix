@@ -1,4 +1,3 @@
-#include "client_UDP_broadcast.h"
 #include "client_discovery_protocol.h"
 #include "date_time_utils.h"
 #include <cstdio>
@@ -6,7 +5,7 @@
 #include <stdexcept>
 #include <string>
 
-#define INET_ADDRSTRLEN 16 // xxx.xxx.xxx.xxx\0
+const int INET_ADDRSTRLEN = 16;
 
 int main(int argc, char *argv[]) {
     // Validação dos argumentos da linha de comando
@@ -26,9 +25,6 @@ int main(int argc, char *argv[]) {
         std::cerr << "Valores válidos: 0 e 65535" << std::endl;
         return 1;
     }
-
-    // Porta válida, iniciar cliente
-    //std::cout << "Cliente iniciado na porta: " << port << std::endl;
 
     // Broadcast para descobrir IP do servidor
     char return_server_ip[INET_ADDRSTRLEN];
@@ -50,4 +46,4 @@ int main(int argc, char *argv[]) {
     std::cout << getCurrentDateString() << " " << getCurrentTimeString() << " server_addr " << return_server_ip << ":" << return_server_port << std::endl;
 
     return 0;
-} 
+}

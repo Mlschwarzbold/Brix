@@ -1,7 +1,6 @@
 #include "date_time_utils.h"
 #include "db_manager/db_manager.h"
 #include "greeter/server_UDP_greeter.h"
-#include "greeter/server_discovery_service.h"
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -34,12 +33,15 @@ int main(int argc, char *argv[]) {
     // db_manager testing
     db_manager::DbManager db = db_manager::DbManager();
 
+    db.register_client(inet_addr("10.0.0.1"));
+    db.register_client(inet_addr("10.0.0.2"));
+
     // Initiate greeter service
-    //udp_server_greeter::start_server();
-    //udp_server_greeter::server_discovery_service(4000, "217.0.0.1", 4001);
+    // udp_server_greeter::start_server();
+    // udp_server_greeter::server_discovery_service(4000, "217.0.0.1", 4001);
 
     std::thread greeter_thread(udp_server_greeter::start_server, port);
- 
+
     std::cout << "greeter thread started" << std::endl;
     greeter_thread.join();
     return 0;

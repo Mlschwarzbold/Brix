@@ -8,8 +8,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define PORT 8080
-#define MAXLINE 1024
+const int PORT = 5000;
+const int MAXLINE = 1024;
 
 int client_UDP_broadcast() {
     int sockfd;
@@ -38,7 +38,7 @@ int client_UDP_broadcast() {
     servaddr.sin_port = htons(PORT);
     // servaddr.sin_addr.s_addr = INADDR_ANY;
     servaddr.sin_addr.s_addr =
-        inet_addr("192.168.0.255"); // this is my server IP address
+        inet_addr("255.255.255.255"); // this is my server IP address
 
     int n;
     socklen_t len;

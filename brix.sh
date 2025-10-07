@@ -12,7 +12,7 @@ build() {
         else echo "- Building Debug"
     fi
 
-    mkdir -p "$BUILD_DIR" 
+    mkdir -p "$BUILD_DIR"
     cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$build_type"
     cd "$BUILD_DIR" || exit 1
     make
@@ -33,7 +33,7 @@ client() {
     build "$@"
     clear
     print_ip
-    echo 
+    echo
     "$BUILD_DIR/client/cliente" "$port"
 }
 
@@ -41,7 +41,7 @@ clean() {
     if [ -d "$BUILD_DIR" ]; then
         echo "Cleaning build directory..."
         rm -rf "$BUILD_DIR" cmake_install.cmake CMakeCache.txt Makefile .cache CMakeFiles
-        
+
     else
         echo "Nothing to clean."
     fi
@@ -75,11 +75,11 @@ network() {
 
     # Split window vertically, run first client
     tmux split-window -h -t $SESSION
-    tmux send-keys -t $SESSION:0.1 "docker run --rm --network brix-net --name client1 -it brix client 5000" C-m
+    tmux send-keys -t $SESSION:0.1 "docker run --rm --network brix-net --name client1 -it brix client 4000" C-m
 
     # Split again, run second client (below first client)
     tmux split-window -v -t $SESSION:0.1
-    tmux send-keys -t $SESSION:0.2 "docker run --rm --network brix-net --name  client2 -it brix client 5001" C-m
+    tmux send-keys -t $SESSION:0.2 "docker run --rm --network brix-net --name  client2 -it brix client 4000" C-m
 
     # Attach to session
     tmux attach -t $SESSION
