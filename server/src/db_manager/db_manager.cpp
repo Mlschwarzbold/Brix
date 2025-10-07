@@ -202,6 +202,8 @@ const db_response DbManager::remove_client(in_addr_t client_ip) {
 
     lock_database();
     unlock_client(client_ip);
+    pthread_mutex_destroy(client_locks.at(client_ip));
+
     auto removed_lock_amount = client_locks.erase(client_ip);
     unlock_database();
 
