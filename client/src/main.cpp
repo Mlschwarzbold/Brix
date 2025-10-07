@@ -1,11 +1,11 @@
 #include "client_discovery_protocol.h"
 #include "date_time_utils.h"
+#include "packets/packets.h"
 #include <cstdio>
 #include <iostream>
 #include <stdexcept>
 #include <string>
-
-const int INET_ADDRSTRLEN = 16;
+#include <arpa/inet.h>
 
 int main(int argc, char *argv[]) {
     // Validação dos argumentos da linha de comando
@@ -44,6 +44,10 @@ int main(int argc, char *argv[]) {
     // 2024-10-01 18:37:00 server_addr 10.1.1.20:4001
 
     std::cout << getCurrentDateString() << " " << getCurrentTimeString() << " server_addr " << return_server_ip << ":" << return_server_port << std::endl;
+
+    Packet packet(REQ, 1, inet_addr("10.1.1.20"), 1000);
+    std::string packet_str = packet_to_str(packet);
+    std::cout << packet_str << std::endl;
 
     return 0;
 }

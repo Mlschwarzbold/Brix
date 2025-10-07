@@ -7,6 +7,6 @@ set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_CXX_STANDARD 17)
 
 # Add subdirectories
-add_subdirectory(common)   # if you have shared code
+add_subdirectory(common)   
 add_subdirectory(client)
 add_subdirectory(server)
