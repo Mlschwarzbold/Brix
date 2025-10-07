@@ -63,6 +63,9 @@ Existem dois tipos de mensagens que podem ser enviados do cliente para o servido
         - `RECEIVER_ACCOUNT_IP`: Ip de destino da transferência.
         - `AMOUNT`: Quantidade inteira a ser transferida.
 
+- Desligamento (`KIL`): Solicita ao servidor que remova a sua entrada do banco de dados.
+    - Argumentos: `[]`
+
 ## Servidor -> Cliente
 ./
 Existem dois tipos de mensagens que podem ser enviados do servidor para o cliente:
