@@ -10,16 +10,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-const int PORT = 8080;
-const int MAXLINE = 1024;
+
 
 namespace udp_server_greeter {
 
-int start_server() {
+int start_server(int port) {
 
     const auto self_ip = get_self_ip();
 
-    udp_server_greeter::server_discovery_service(4000, (char *)self_ip.c_str(),
+    udp_server_greeter::server_discovery_service(port, (char *)self_ip.c_str(),
                                                  4001);
 
     /*

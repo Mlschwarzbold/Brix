@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     //udp_server_greeter::start_server();
     //udp_server_greeter::server_discovery_service(4000, "217.0.0.1", 4001);
 
-    std::thread greeter_thread(udp_server_greeter::start_server);
+    std::thread greeter_thread(udp_server_greeter::start_server, port);
  
     std::cout << "greeter thread started" << std::endl;
     greeter_thread.join();
