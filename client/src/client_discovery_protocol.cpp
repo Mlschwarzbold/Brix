@@ -41,10 +41,8 @@ int client_discovery_protocol(char *return_server_ip, int *return_server_port,
     memset(&servaddr, 0, sizeof(servaddr));
 
     // Filling server information
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(broadcast_port);
-    servaddr.sin_addr.s_addr = inet_addr(broadcast_ip); // broadcast address
-
+    servaddr = create_sockaddr(broadcast_ip, broadcast_port);
+                                
     int n;
     socklen_t len;
     std::string msg;

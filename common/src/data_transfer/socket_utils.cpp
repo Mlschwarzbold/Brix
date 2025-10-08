@@ -45,7 +45,26 @@ int set_timeout(int sockfd, int timeout_ms){
     if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
         std::cerr << "setsockopt (SO_RCVTIMEO) failed" << std::endl;
         close(sockfd);
-        exit(EXIT_FAILURE);
+        return -1;
+    }
+    return 0;
+}
+
+struct sockaddr_in create_sockaddr(const char* ip, int port){
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET; // IPv4
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = inet_addr(ip);
+    return addr;
+}
+
+int bind_to_sockaddr(int sockfd, struct sockaddr_in* addr){
+  if (bind(sockfd,(const struct sockaddr *)addr, sizeof(*addr)) <
+        0) {
+        std::cerr << "bind failed" << std::endl;
+        close(sockfd);
+        return -1;
     }
     return 0;
 }

@@ -34,20 +34,14 @@ void server_discovery_service(int discovery_service_port,
     // Enable broadcast
     enable_broadcast(sockfd);
 
-    memset(&servaddr, 0, sizeof(servaddr));
+    //memset(&servaddr, 0, sizeof(servaddr));
     memset(&cliaddr, 0, sizeof(cliaddr));
 
     // Filling server information
-    servaddr.sin_family = AF_INET; // IPv4
-    servaddr.sin_port = htons(discovery_service_port);
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    servaddr = create_sockaddr("0.0.0.0", discovery_service_port);
 
     // Bind the socket with the server address
-    if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) <
-        0) {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
+    bind_to_sockaddr(sockfd, &servaddr);
 
     socklen_t len;
     int n;
