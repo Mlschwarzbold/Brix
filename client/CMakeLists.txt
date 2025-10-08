@@ -2,6 +2,7 @@ add_executable(
     cliente src/main.cpp
     src/client_UDP_broadcast.cpp
     src/client_discovery_protocol.cpp
+    src/data_transfer/client_request_transfer.cpp
 )
 
 # Link with common library
