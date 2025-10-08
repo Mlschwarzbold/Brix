@@ -1,6 +1,7 @@
 #include "client_discovery_protocol.h"
 #include "date_time_utils.h"
 #include "packets/packets.h"
+#include "packets/string_packets.h"
 #include <cstdio>
 #include <iostream>
 #include <stdexcept>
@@ -48,6 +49,9 @@ int main(int argc, char *argv[]) {
     REQ_Packet packet(1, inet_addr("10.1.1.20"), 1000);
     std::string packet_str = packet.to_string();
     std::cout << packet_str << std::endl;
+
+    String_Packet string_packet(packet_str);
+    std::cout << string_packet.to_REQ_Packet().to_string() << std::endl; //boioioing
 
     return 0;
 }
