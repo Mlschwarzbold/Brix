@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "data_transfer/socket_utils.h"
 
 #define MAXLINE 1024
 
@@ -29,32 +30,13 @@ int client_discovery_protocol(char *return_server_ip, int *return_server_port,
     int address_is_valid;
 
     // Creating socket file descriptor
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("socket creation failed");
-        exit(EXIT_FAILURE);
-    }
+    sockfd = create_udp_socket();
 
-    int broadcastEnable = 1;
-    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastEnable,
-                   sizeof(broadcastEnable)) < 0) {
-        perror("setsockopt (SO_BROADCAST) failed");
-        close(sockfd);
-        exit(EXIT_FAILURE);
-    }
+    // Enable broadcast
+    enable_broadcast(sockfd);
 
-    // timeout
-    // weird struct takes seconds and microseconds.
-    // microseconds cant be greater than 1 million
-    // so we gotta do weird math to convert milliseconds to both seconds and
-    // microseconds
-    struct timeval tv;
-    tv.tv_sec = initial_timeout_ms / 1000;
-    tv.tv_usec = (initial_timeout_ms % 1000) * 1000; // microseconds
-    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
-        perror("setsockopt (SO_RCVTIMEO) failed");
-        close(sockfd);
-        exit(EXIT_FAILURE);
-    }
+    // Add timeout
+    set_timeout(sockfd, initial_timeout_ms);
 
     memset(&servaddr, 0, sizeof(servaddr));
 
@@ -84,7 +66,7 @@ int client_discovery_protocol(char *return_server_ip, int *return_server_port,
                      (struct sockaddr *)&servaddr, &len);
         // std::cout<<" lenght: " <<n<<std::endl;
 
-        std::cout << buffer << std::endl;
+        //std::cout << buffer << std::endl;
 
         if (n < 0) {
             std::cerr << "Timeout or error receiving response, retrying... ("

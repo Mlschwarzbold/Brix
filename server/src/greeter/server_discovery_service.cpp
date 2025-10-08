@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "data_transfer/socket_utils.h"
 
 
 namespace udp_server_greeter {
@@ -28,19 +29,10 @@ void server_discovery_service(int discovery_service_port,
               << std::endl;
 
     // Creating socket file descriptor
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("socket creation failed");
-        exit(EXIT_FAILURE);
-    }
+    sockfd = create_udp_socket();
 
     // Enable broadcast
-    int broadcastEnable = 1;
-    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastEnable,
-                   sizeof(broadcastEnable)) < 0) {
-        perror("setsockopt (SO_BROADCAST) failed");
-        close(sockfd);
-        exit(EXIT_FAILURE);
-    }
+    enable_broadcast(sockfd);
 
     memset(&servaddr, 0, sizeof(servaddr));
     memset(&cliaddr, 0, sizeof(cliaddr));
