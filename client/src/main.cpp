@@ -45,8 +45,8 @@ int main(int argc, char *argv[]) {
 
     std::cout << getCurrentDateString() << " " << getCurrentTimeString() << " server_addr " << return_server_ip << ":" << return_server_port << std::endl;
 
-    Packet packet(REQ, 1, inet_addr("10.1.1.20"), 1000);
-    std::string packet_str = packet_to_str(packet);
+    REQ_Packet packet(1, inet_addr("10.1.1.20"), 1000);
+    std::string packet_str = packet.to_string();
     std::cout << packet_str << std::endl;
 
     return 0;
