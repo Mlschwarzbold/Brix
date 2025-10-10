@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "data_transfer/socket_utils.h"
-
+#include "colors.h"
 
 namespace udp_server_greeter {
 
@@ -25,8 +25,8 @@ void server_discovery_service(int discovery_service_port,
     char send_buffer[MAXLINE+1];
     struct sockaddr_in servaddr, cliaddr;
 
-    std::cout << "Starting Discovery Service on port " << discovery_service_port
-              << std::endl;
+    std::cout << GREEN << "Starting Discovery Service on port " << discovery_service_port
+              << RESET << std::endl;
 
     // Creating socket file descriptor
     sockfd = create_udp_socket();
@@ -58,12 +58,12 @@ void server_discovery_service(int discovery_service_port,
         n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL,
                      (struct sockaddr *)&cliaddr, &len);
         buffer[n] = '\0';
-        std::cout << "Discovery request from: " << inet_ntoa(cliaddr.sin_addr)
-                  << ":" << ntohs(cliaddr.sin_port) << std::endl;
+        std::cout << GREEN << "Discovery request from: " << inet_ntoa(cliaddr.sin_addr)
+                  << ":" << ntohs(cliaddr.sin_port) << RESET << std::endl;
 
         sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM,
                (const struct sockaddr *)&cliaddr, len);
-        std::cout << "Location message delivered." << std::endl;
+        std::cout << GREEN << "Location message delivered." << RESET << std::endl;
     }
 }
 

@@ -4,19 +4,11 @@
 #include <bits/stdc++.h>
 #include "packet_multiplexer.h"
 #include "data_transfer/socket_utils.h"
+#include "colors.h"
 
 #define MAX_PACKET_SIZE 1024
 
-// ANSI color codes
-#define RESET   "\033[0m"
-#define RED     "\033[31m"
-#define GREEN   "\033[32m"
-#define YELLOW  "\033[33m"
-#define BLUE    "\033[34m"
-#define MAGENTA "\033[35m"
-#define CYAN    "\033[36m"
-#define WHITE   "\033[37m"
-#define BOLD    "\033[1m"
+
 
 namespace multiplexer {
 
@@ -44,7 +36,7 @@ int packet_multiplexer(int port){
     //memset(&servaddr, 0, sizeof(servaddr));
     memset(&cliaddr, 0, sizeof(cliaddr));
     len = sizeof(cliaddr); 
-    
+
     // Filling server information
     servaddr = create_sockaddr("0.0.0.0", port);
 

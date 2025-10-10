@@ -1,4 +1,5 @@
 add_library(common
+    src/colors.h
     src/date_time_utils.cpp
     src/packets/packets.cpp
     src/packets/string_packets.cpp

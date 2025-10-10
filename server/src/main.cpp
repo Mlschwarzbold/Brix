@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string>
 #include <thread>
+#include "colors.h"
 
 int main(int argc, char *argv[]) {
     // Validação dos argumentos da linha de comando
@@ -27,9 +28,9 @@ int main(int argc, char *argv[]) {
     }
     // Porta válida, iniciar servidor
 
-    std::cout << "Servidor iniciado na porta: " << port << std::endl;
-    std::cout << "Data atual: " << getCurrentDateString() << " "
-              << getCurrentTimeString() << std::endl;
+    std::cout << YELLOW << "Servidor iniciado na porta: " << port << RESET << std::endl;
+    std::cout << YELLOW << "Data atual: " << getCurrentDateString() << " "
+              << getCurrentTimeString() << RESET << std::endl;
 
     // db_manager testing
     db_manager::DbManager db = db_manager::DbManager();
@@ -42,7 +43,6 @@ int main(int argc, char *argv[]) {
     // udp_server_greeter::server_discovery_service(4000, "217.0.0.1", 4001);
 
     std::thread greeter_thread(udp_server_greeter::start_server, port);
-    std::cout << "greeter thread started" << std::endl;
 
 
     // Initiate packet multiplexer thread
