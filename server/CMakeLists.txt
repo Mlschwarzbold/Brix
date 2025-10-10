@@ -3,6 +3,7 @@ add_executable(
     src/greeter/server_UDP_greeter.cpp
     src/greeter/server_discovery_service.cpp
     src/db_manager/db_manager.cpp
+    src/multiplexer/packet_multiplexer.cpp
     )
 
 # Link with common library if it exists

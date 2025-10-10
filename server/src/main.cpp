@@ -1,6 +1,7 @@
 #include "date_time_utils.h"
 #include "db_manager/db_manager.h"
 #include "greeter/server_UDP_greeter.h"
+#include "multiplexer/packet_multiplexer.h"
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -41,8 +42,14 @@ int main(int argc, char *argv[]) {
     // udp_server_greeter::server_discovery_service(4000, "217.0.0.1", 4001);
 
     std::thread greeter_thread(udp_server_greeter::start_server, port);
-
     std::cout << "greeter thread started" << std::endl;
+
+
+    // Initiate packet multiplexer thread
+    std::thread multiplexer_thread(multiplexer::start_multiplexer_server, port + 1);
+
+
     greeter_thread.join();
+    multiplexer_thread.join();
     return 0;
 }

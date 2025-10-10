@@ -46,7 +46,7 @@ void server_discovery_service(int discovery_service_port,
     socklen_t len;
     int n;
 
-    len = sizeof(cliaddr); // len is value/result
+    len = sizeof(cliaddr); 
 
     std::string msg;
 
