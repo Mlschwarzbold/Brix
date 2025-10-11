@@ -23,8 +23,11 @@ namespace multiplexer {
         Packet_indexer();
 
         Packet_status index_packet(REQ_Packet packet, in_addr_t client_ip);
+;
 
     };
+
+    void print_status(Packet_status status);
 
 } // namespace multiplexer
 

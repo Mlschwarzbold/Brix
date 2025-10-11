@@ -3,6 +3,7 @@
 #include "packet_indexer.h"
 #include <string>
 #include <iostream>
+#include "colors.h"
 
 namespace multiplexer {
 
@@ -43,6 +44,24 @@ namespace multiplexer {
 
 
        return NO_CLUE;
+    }
+
+    void print_status(Packet_status status) {
+        std::cout << GREEN << "Packet status: ";
+                switch(status){
+                    case VALID:
+                        std::cout << "VALID" << RESET << std::endl;
+                        break;
+                    case DUPLICATE:
+                        std::cout << "DUPLICATE" << RESET << std::endl;
+                        break;
+                    case OUT_OF_ORDER:
+                        std::cout << "OUT_OF_ORDER" << RESET << std::endl;
+                        break;
+                    case NO_CLUE:
+                        std::cout << "NO_CLUE" << RESET << std::endl;
+                        break;
+                }
     }
 
 } // namespace multiplexer

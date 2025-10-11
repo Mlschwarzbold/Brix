@@ -74,21 +74,7 @@ int packet_multiplexer(int port){
                     << " Transfer Amount: " << req_packet.transfer_amount << RESET << std::endl;
 
                 status = indexer.index_packet(req_packet, (in_addr_t)cliaddr.sin_addr.s_addr);
-                std::cout << GREEN << "Packet status: ";
-                switch(status){
-                    case VALID:
-                        std::cout << "VALID" << RESET << std::endl;
-                        break;
-                    case DUPLICATE:
-                        std::cout << "DUPLICATE" << RESET << std::endl;
-                        break;
-                    case OUT_OF_ORDER:
-                        std::cout << "OUT_OF_ORDER" << RESET << std::endl;
-                        break;
-                    case NO_CLUE:
-                        std::cout << "NO_CLUE" << RESET << std::endl;
-                        break;
-                }
+                print_status(status);
 
             } catch (const std::exception& e) {
                 std::cerr << RED << "Error parsing REQ Packet: " << e.what() << RESET << std::endl;

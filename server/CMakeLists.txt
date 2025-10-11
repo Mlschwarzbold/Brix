@@ -5,6 +5,7 @@ add_executable(
     src/db_manager/db_manager.cpp
     src/multiplexer/packet_multiplexer.cpp
     src/multiplexer/packet_indexer.cpp
+    src/request_handler/REQ_packet_handler.cpp
     )
 
 # Link with common library if it exists
