@@ -16,6 +16,8 @@ class String_Packet : public std::string {
 
     // to packet method
     REQ_Packet to_REQ_Packet();
+
+    Packet_type type(); 
     
 };
 

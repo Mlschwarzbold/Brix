@@ -1,10 +1,14 @@
 #include <iostream>
 #include <string>
 #include <arpa/inet.h>
+#include <unordered_map>
 #include <bits/stdc++.h>
 #include "packet_multiplexer.h"
 #include "data_transfer/socket_utils.h"
 #include "colors.h"
+#include "packet_indexer.h"
+#include "packets/packets.h"
+#include "packets/string_packets.h"
 
 #define MAX_PACKET_SIZE 1024
 
@@ -55,10 +59,27 @@ int packet_multiplexer(int port){
                     << ":" << ntohs(cliaddr.sin_port) << RESET <<std::endl;
         std::cout << BLUE << "Packet content: " << buffer << RESET << std::endl;
 
-        // Create thread and forward packet to it
+        
     }
+
+    // convert to string_packet
+    String_Packet str_packet(buffer);
+    Packet_type packet_type = str_packet.type();
+
     
 
+    switch (packet_type) {
+        case REQ:
+
+            
+            break;
+        case ANS:
+            
+            break;
+        default:
+            std::cerr << RED << "Unknown packet type" << RESET << std::endl;
+            break;
+    }
 
     return 0;
 }

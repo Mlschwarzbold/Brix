@@ -10,8 +10,18 @@
 typedef enum _packet_type {
         REQ,
         ANS,
-        ACK
+        ACK,
+        ERR
     } Packet_type;
+
+// Packet status enum
+typedef enum _packet_status {
+        VALID,
+        DUPLICATE,
+        OUT_OF_ORDER,
+        NO_CLUE
+    } Packet_status;
+
 
 
 // Packet class

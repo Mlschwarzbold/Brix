@@ -1,4 +1,5 @@
 #include "string_packets.h"
+#include "packets.h"
 
 // translates a string to a REQ packet
 // example:
@@ -26,3 +27,16 @@ REQ_Packet String_Packet::to_REQ_Packet() {
 
         return REQ_Packet(seq_num, receiver_ip, transfer_amount);
     }
+
+Packet_type String_Packet::type() {
+    // Determine the packet type based on the first 3 characters
+    if (this->substr(0, 3) == "REQ") {
+        return REQ;
+    } else if (this->substr(0, 3) == "ANS") {
+        return ANS;
+    } else if (this->substr(0, 3) == "ACK") {
+        return ACK;
+    } else {
+        return ERR;
+    }
+}
