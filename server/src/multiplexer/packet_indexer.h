@@ -8,13 +8,13 @@
 
 namespace multiplexer {
 
-    class PacketIndexer {
+    class Packet_indexer {
     public:
     
         // Hash table to store client IPs and their last valid request number
         std::unordered_map<in_addr_t, int> client_packet_table;
 
-        PacketIndexer();
+        Packet_indexer();
 
         Packet_status index_packet(REQ_Packet packet, in_addr_t client_ip);
 

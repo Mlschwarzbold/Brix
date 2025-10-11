@@ -4,6 +4,7 @@ add_executable(
     src/greeter/server_discovery_service.cpp
     src/db_manager/db_manager.cpp
     src/multiplexer/packet_multiplexer.cpp
+    src/multiplexer/packet_indexer.cpp
     )
 
 # Link with common library if it exists
