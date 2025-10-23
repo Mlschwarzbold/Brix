@@ -24,16 +24,9 @@ void print_status(Packet_status status) {
     }
 }
 
-std::string build_reply(bool success, int last_processed_transaction,
+std::string build_reply(std::string result, int last_processed_transaction,
                         int new_client_balance) {
     std::ostringstream reply_constructor;
-
-    std::string result;
-    if (success) {
-        result = "SUCC";
-    } else {
-        result = "FAIL";
-    }
 
     reply_constructor << "ACK " << result << " " << last_processed_transaction
                       << " " << new_client_balance << " END\n";
@@ -58,16 +51,20 @@ void process_req_packet(struct sockaddr_in *sender_addr, REQ_Packet packet,
         result = db->make_transaction(sender_ip, packet.receiver_ip,
                                       packet.transfer_amount);
         if (result.success) {
-            reply = build_reply(true, packet.seq_num, result.record->balance);
+            reply = build_reply("SUCC", packet.seq_num, result.record->balance);
+        } else {
+            reply = build_reply("FAIL", packet.seq_num, result.record->balance);
         }
         break;
 
     case DUPLICATE:
     case OUT_OF_ORDER:
+        reply = build_reply(
+            "B_ID", indexer->client_packet_table.at(sender_ip).last_seq_num, 0);
+        break;
     case NO_CLUE:
         return;
     }
-
     sendto(reply_sockfd, reply.data(), reply.length(), MSG_CONFIRM,
            (const struct sockaddr *)sender_addr, sizeof(*sender_addr));
 }
