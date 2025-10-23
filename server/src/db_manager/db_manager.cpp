@@ -1,9 +1,16 @@
 
 
 #include "db_manager.h"
+#include "colors.h"
 #include <iostream>
 
 namespace db_manager {
+
+DbManager *DbManager::get_instace() {
+    static DbManager *instance = new DbManager();
+    return instance;
+}
+
 DbManager::DbManager() {
     // The records are kept in an unordere map (indexed by their client_ip,
     // using a hash table  for efficient storage
@@ -19,6 +26,7 @@ DbManager::DbManager() {
 }
 
 DbManager::~DbManager() {
+    std::cout << RED << "[DATABASE] Destroying database instance!" << std::endl;
     pthread_mutex_destroy(&database_access_lock);
 
     for (auto client_reader : client_locks) {

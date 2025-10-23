@@ -38,8 +38,8 @@ struct db_response {
 
 class DbManager {
   public:
-    DbManager();
     ~DbManager();
+    static DbManager *get_instace();
 
     // Registers a new entry for the client in the database records.
     // - If the client already exists, returns false in success and the
@@ -88,6 +88,8 @@ class DbManager {
     const db_response remove_client(in_addr_t client_ip);
 
   private:
+    DbManager();
+
     std::unordered_map<in_addr_t, pthread_mutex_t *> client_locks;
     pthread_mutex_t database_access_lock;
 
