@@ -1,67 +1,54 @@
-#include <arpa/inet.h>
-#include <unordered_map>
 #include "packet_indexer.h"
-#include <string>
-#include <iostream>
 #include "colors.h"
+#include <arpa/inet.h>
+#include <iostream>
+#include <string>
+#include <unordered_map>
 
 namespace multiplexer {
 
-    Packet_indexer::Packet_indexer() {
-        client_packet_table = std::unordered_map<in_addr_t, Last_packet_info>();
-    }
+Packet_indexer::Packet_indexer() {
+    client_packet_table = std::unordered_map<in_addr_t, Last_packet_info>();
+}
 
-    Packet_status Packet_indexer::index_packet(REQ_Packet packet, in_addr_t client_ip){ 
-        std::cout << "Indexing packet with seq num: " << packet.seq_num << " from client: " << inet_ntoa(*(in_addr*)&client_ip) << std::endl;
+Packet_status Packet_indexer::index_packet(REQ_Packet packet,
+                                           in_addr_t client_ip) {
+    std::cout << "Indexing packet with seq num: " << packet.seq_num
+              << " from client: " << inet_ntoa(*(in_addr *)&client_ip)
+              << std::endl;
 
-        auto it = client_packet_table.find(client_ip);
+    auto it = client_packet_table.find(client_ip);
 
-        // Check if the client IP is already in the table
-        if (it != client_packet_table.end()) {
-            int last_seq_num = it->second.last_seq_num;
-            // If client has already sent packets, check sequence number
-            if (packet.seq_num == last_seq_num + 1) {
-                // If seq num is correct, update the table and return 1 (valid packet)
-                it->second.last_seq_num = packet.seq_num;
-                return VALID; 
-            } else {
-                if (packet.seq_num <= last_seq_num) {
-                    return DUPLICATE;
-                } else {
-                    return OUT_OF_ORDER;
-                }
-            }
+    // Check if the client IP is already in the table
+    if (it != client_packet_table.end()) {
+        int last_seq_num = it->second.last_seq_num;
+        // If client has already sent packets, check sequence number
+        if (packet.seq_num == last_seq_num + 1) {
+            // If seq num is correct, update the table and return 1 (valid
+            // packet)
+            it->second.last_seq_num = packet.seq_num;
+            return VALID;
         } else {
-            // New client, check if seq num is 1
-            std::cout << "New client detected: " << inet_ntoa(*(in_addr*)&client_ip) << std::endl;
-            if (packet.seq_num == 1) {
-                client_packet_table.insert({client_ip, {packet.seq_num, false, nullptr}});
-                return VALID;
+            if (packet.seq_num <= last_seq_num) {
+                return DUPLICATE;
             } else {
                 return OUT_OF_ORDER;
             }
         }
-
-
-       return NO_CLUE;
+    } else {
+        // New client, check if seq num is 1
+        std::cout << "New client detected: "
+                  << inet_ntoa(*(in_addr *)&client_ip) << std::endl;
+        if (packet.seq_num == 1) {
+            client_packet_table.insert(
+                {client_ip, {packet.seq_num, false, nullptr}});
+            return VALID;
+        } else {
+            return OUT_OF_ORDER;
+        }
     }
 
-    void print_status(Packet_status status) {
-        std::cout << GREEN << "Packet status: ";
-                switch(status){
-                    case VALID:
-                        std::cout << "VALID" << RESET << std::endl;
-                        break;
-                    case DUPLICATE:
-                        std::cout << "DUPLICATE" << RESET << std::endl;
-                        break;
-                    case OUT_OF_ORDER:
-                        std::cout << "OUT_OF_ORDER" << RESET << std::endl;
-                        break;
-                    case NO_CLUE:
-                        std::cout << "NO_CLUE" << RESET << std::endl;
-                        break;
-                }
-    }
+    return NO_CLUE;
+}
 
 } // namespace multiplexer
