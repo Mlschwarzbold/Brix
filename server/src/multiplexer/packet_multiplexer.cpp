@@ -9,7 +9,6 @@
 #include <bits/stdc++.h>
 #include <iostream>
 #include <string>
-#include <unordered_map>
 
 #define MAX_PACKET_SIZE 1024
 
@@ -70,7 +69,7 @@ int packet_multiplexer(int port) {
                           << " Transfer Amount: " << req_packet.transfer_amount
                           << RESET << std::endl;
 
-                std::thread req_thread(requests::process_req_packet, &cliaddr,
+                std::thread req_thread(requests::process_req_packet, cliaddr,
                                        req_packet, &indexer, sockfd);
 
                 req_thread.detach();

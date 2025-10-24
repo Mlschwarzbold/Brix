@@ -6,7 +6,7 @@
 
 namespace db_manager {
 
-DbManager *DbManager::get_instace() {
+DbManager *DbManager::get_instance() {
     static DbManager *instance = new DbManager();
     return instance;
 }
@@ -136,8 +136,17 @@ DbManager::make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
     try {
         lock_client(receiver_ip);
     } catch (std::out_of_range const &) {
+        const auto sender_info = get_client_info(sender_ip);
+        if (!sender_info.success) {
+            std::cerr
+                << "[DATABASE ERROR]: Client retrieval failed after mutex "
+                   "acquisition succeded!"
+                << std::endl;
+        }
+        unlock_client(sender_ip);
         unlock_database();
-        return {false, NULL, db_record_response::UNKNOWN_RECEIVER};
+        return {false, sender_info.record,
+                db_record_response::UNKNOWN_RECEIVER};
     }
 
     // Finished getting the locks

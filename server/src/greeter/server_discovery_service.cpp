@@ -30,7 +30,7 @@ void server_discovery_service(int discovery_service_port,
     std::cout << GREEN << "Starting Discovery Service on port "
               << discovery_service_port << RESET << std::endl;
 
-    auto db_instance = db_manager::DbManager::get_instace();
+    auto db_instance = db_manager::DbManager::get_instance();
 
     // Creating socket file descriptor
     sockfd = create_udp_socket();

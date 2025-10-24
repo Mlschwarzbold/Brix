@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    db_manager::DbManager *db = db_manager::DbManager::get_instace();
+    db_manager::DbManager *db = db_manager::DbManager::get_instance();
 
     // Porta válida, iniciar servidor
     std::cout << YELLOW << "Servidor iniciado na porta: " << port << RESET

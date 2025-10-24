@@ -6,8 +6,7 @@
 namespace requests {
 
 void print_status(Packet_status status);
-
-void process_req_packet(struct sockaddr_in *sender_ip, REQ_Packet packet,
+void process_req_packet(const struct sockaddr_in sender_addr, REQ_Packet packet,
                         multiplexer::Packet_indexer *indexer, int reply_sockfd);
 
 } // namespace requests

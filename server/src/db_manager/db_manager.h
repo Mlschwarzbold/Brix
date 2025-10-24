@@ -45,7 +45,7 @@ struct db_metadata {
 class DbManager {
   public:
     ~DbManager();
-    static DbManager *get_instace();
+    static DbManager *get_instance();
 
     // Registers a new entry for the client in the database records.
     // - If the client already exists, returns false in success and the

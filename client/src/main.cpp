@@ -1,12 +1,11 @@
 #include "client_discovery_protocol.h"
+#include "data_transfer/client_request_transfer.h"
 #include "date_time_utils.h"
-#include "packets/packets.h"
-#include "packets/string_packets.h"
+#include <arpa/inet.h>
 #include <cstdio>
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include <arpa/inet.h>
 
 int main(int argc, char *argv[]) {
     // Validação dos argumentos da linha de comando
@@ -33,25 +32,34 @@ int main(int argc, char *argv[]) {
     if (client_discovery_protocol(return_server_ip, &return_server_port,
                                   (char *)"255.255.255.255", port, 5,
                                   1000) == 0) {
-        //std::cout << "Server found at IP: " << return_server_ip << " Port: " << return_server_port << std::endl;
+        std::cout << "Server found at IP: " << return_server_ip
+                  << " Port: " << return_server_port << std::endl;
     } else {
         std::cerr << "Server not found" << std::endl;
         return 1;
     }
 
-
     // Formato da mensagem de inicio do cliente
     // DATE <YYYY-MM-DD> TIME <HH:MM:SS> server addr <IP_ADDRESS>:<PORT >
     // 2024-10-01 18:37:00 server_addr 10.1.1.20:4001
 
-    std::cout << getCurrentDateString() << " " << getCurrentTimeString() << " server_addr " << return_server_ip << ":" << return_server_port << std::endl;
+    std::cout << getCurrentDateString() << " " << getCurrentTimeString()
+              << " server_addr " << return_server_ip << ":"
+              << return_server_port << std::endl;
 
-    REQ_Packet packet(1, inet_addr("10.1.1.20"), 1000);
-    std::string packet_str = packet.to_string();
-    std::cout << packet_str << std::endl;
+    client_request_transfer::RequestDispatcher *request_processor =
+        client_request_transfer::RequestDispatcher::get_instance(
+            return_server_ip, return_server_port, 1000);
 
-    String_Packet string_packet(packet_str);
-    std::cout << string_packet.to_REQ_Packet().to_string() << std::endl; //boioioing
+    std::string input;
+    while (std::getline(std::cin, input)) {
+        std::string input_copy;
 
+        input_copy = input;
+
+        request_processor->queue_request(input);
+    }
+
+    delete request_processor;
     return 0;
 }
