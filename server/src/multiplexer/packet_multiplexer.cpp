@@ -10,7 +10,7 @@
 #include <iostream>
 #include <string>
 
-#define MAX_PACKET_SIZE 1024
+#define MAX_PACKET_SIZE 2048
 
 namespace multiplexer {
 
@@ -50,13 +50,20 @@ int packet_multiplexer(int port) {
                      (struct sockaddr *)&cliaddr, &len);
         buffer[n] = '\0';
 
-        std::cout << BLUE << "Packet from: " << inet_ntoa(cliaddr.sin_addr)
-                  << ":" << ntohs(cliaddr.sin_port) << RESET << std::endl;
-        std::cout << BLUE << "Packet content: " << buffer << RESET << std::endl;
+        // std::cout << BLUE << "Packet from: " << inet_ntoa(cliaddr.sin_addr)
+        //           << ":" << ntohs(cliaddr.sin_port) << RESET << std::endl;
+        // std::cout << BLUE << "Packet content: " << buffer << RESET <<
+        // std::endl;
 
         // convert to string_packet
-        String_Packet str_packet(buffer);
+        char buffer_copy[MAX_PACKET_SIZE + 1];
+        mempcpy(buffer_copy, buffer, sizeof(buffer_copy));
+        String_Packet str_packet(buffer_copy);
+
         Packet_type packet_type = str_packet.type();
+
+        struct sockaddr_in cli_adrr_copy;
+        std::memcpy(&cli_adrr_copy, &cliaddr, sizeof(struct sockaddr_in));
 
         // If it is a REQ packet, try to parse it
         if (packet_type == REQ) {
@@ -65,13 +72,18 @@ int packet_multiplexer(int port) {
 
                 pthread_t req_thread;
 
-                requests::process_req_packet_params params = {
-                    cliaddr, req_packet, sockfd};
+                requests::process_req_packet_params *params =
+                    (requests::process_req_packet_params *)std::malloc(
+                        sizeof(requests::process_req_packet_params));
 
-                requests::process_req_packet_params params_copy = params;
+                params->reply_sockfd = sockfd;
+                std::memcpy((void *)&params->packet, &req_packet,
+                            sizeof(struct REQ_Packet));
+                std::memcpy((void *)&params->sender_addr, &cli_adrr_copy,
+                            sizeof(struct sockaddr_in));
 
                 pthread_create(&req_thread, NULL, requests::process_req_packet,
-                               &params_copy);
+                               params);
 
             } catch (const std::exception &e) {
                 std::cerr << RED << "Error parsing REQ Packet: " << e.what()
@@ -83,8 +95,8 @@ int packet_multiplexer(int port) {
 
             pthread_t kill_thread;
 
-            requests::process_kill_packet_params params = {cliaddr, kill_packet,
-                                                           sockfd};
+            requests::process_kill_packet_params params = {cli_adrr_copy,
+                                                           kill_packet, sockfd};
 
             pthread_create(&kill_thread, NULL, requests::process_kill_packet,
                            &params);

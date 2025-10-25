@@ -133,11 +133,11 @@ void *process_req_packet(void *arg) {
     int reply_sockfd = params.reply_sockfd;
     db_manager::DbManager *db = db_manager::DbManager::get_instance();
 
-    db_manager::client_record client_record =
-        db->get_client_info(sender_addr.sin_addr.s_addr).record;
+    db_manager::db_record_response client_record =
+        db->get_client_info(sender_addr.sin_addr.s_addr);
 
     in_addr_t sender_ip = sender_addr.sin_addr.s_addr;
-    Packet_status status = check_packet_status(packet, client_record);
+    Packet_status status = check_packet_status(packet, client_record.record);
 
     ACK_Packet reply;
 
@@ -172,6 +172,7 @@ void *process_req_packet(void *arg) {
            MSG_CONFIRM, (const struct sockaddr *)&sender_addr,
            sizeof(sender_addr));
 
+    free(arg);
     return nullptr;
 }
 
