@@ -1,7 +1,6 @@
 #include "packet_multiplexer.h"
 #include "colors.h"
 #include "data_transfer/socket_utils.h"
-#include "packet_indexer.h"
 #include "packets/packets.h"
 #include "packets/string_packets.h"
 #include "request_handler/KIL_packet_handler.h"
@@ -31,7 +30,6 @@ int packet_multiplexer(int port) {
     socklen_t len;
     struct sockaddr_in servaddr, cliaddr;
     char buffer[MAX_PACKET_SIZE + 1]; //+1 for /0
-    Packet_indexer indexer = Packet_indexer();
 
     // Creating socket file descriptor
     sockfd = create_udp_socket();
@@ -68,10 +66,12 @@ int packet_multiplexer(int port) {
                 pthread_t req_thread;
 
                 requests::process_req_packet_params params = {
-                    cliaddr, req_packet, &indexer, sockfd};
+                    cliaddr, req_packet, sockfd};
+
+                requests::process_req_packet_params params_copy = params;
 
                 pthread_create(&req_thread, NULL, requests::process_req_packet,
-                               &params);
+                               &params_copy);
 
             } catch (const std::exception &e) {
                 std::cerr << RED << "Error parsing REQ Packet: " << e.what()

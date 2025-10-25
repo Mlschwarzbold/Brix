@@ -110,18 +110,34 @@ void print_request_info(in_addr_t sender_ip, REQ_Packet packet, bool is_dup,
     std::cout << RESET << std::endl;
 }
 
+Packet_status check_packet_status(REQ_Packet packet,
+                                  db_manager::client_record client) {
+    int received_seq_num = packet.seq_num;
+    int expected_seq_num = client.last_request + 1;
+
+    if (received_seq_num == expected_seq_num) {
+        return VALID;
+    } else if (received_seq_num < expected_seq_num) {
+        return DUPLICATE;
+    } else {
+        return OUT_OF_ORDER;
+    }
+}
+
 void *process_req_packet(void *arg) {
 
     process_req_packet_params params = *(process_req_packet_params *)arg;
 
     struct sockaddr_in sender_addr = params.sender_addr;
     REQ_Packet packet = params.packet;
-    multiplexer::Packet_indexer *indexer = params.indexer;
     int reply_sockfd = params.reply_sockfd;
+    db_manager::DbManager *db = db_manager::DbManager::get_instance();
+
+    db_manager::client_record client_record =
+        db->get_client_info(sender_addr.sin_addr.s_addr).record;
 
     in_addr_t sender_ip = sender_addr.sin_addr.s_addr;
-    Packet_status status = indexer->index_packet(packet, sender_ip);
-    auto db = db_manager::DbManager::get_instance();
+    Packet_status status = check_packet_status(packet, client_record);
 
     ACK_Packet reply;
 

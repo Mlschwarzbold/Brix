@@ -7,8 +7,8 @@
 #include <unordered_map>
 namespace db_manager {
 
-const unsigned long int STARTING_BALANCE = 1000;
-const unsigned int STARTING_REQUEST = 1;
+const unsigned long int STARTING_BALANCE = 100000;
+const unsigned int STARTING_REQUEST = 0;
 
 // This is how a client is represented inside the database. They can be ordered
 // or compared using the `client_ip` field.

@@ -191,6 +191,8 @@ DbManager::make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
 
     // Verify sender balance
     if (sender->balance < transfer_amount) {
+        unlock_client(sender_ip);
+        unlock_client(receiver_ip);
         return {false, *sender, db_record_response::INSUFFICIENT_BALANCE};
     }
 

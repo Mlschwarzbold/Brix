@@ -17,14 +17,14 @@ typedef enum _packet_status {
 } Packet_status;
 
 // Packet class
-class Packet {
+struct Packet {
   public:
     Packet_type packet_type;
     long int seq_num;
 };
 
 // REQ packet class
-class REQ_Packet : public Packet {
+struct REQ_Packet : public Packet {
   public:
     in_addr_t receiver_ip;
     long int transfer_amount;
@@ -40,7 +40,7 @@ class REQ_Packet : public Packet {
 };
 
 // ACK packet class
-class ACK_Packet : public Packet {
+struct ACK_Packet : public Packet {
   public:
     std::string result;
     unsigned long int new_balance;
@@ -66,7 +66,7 @@ class ACK_Packet : public Packet {
     std::string to_string();
 };
 
-class KIL_Packet : public Packet {
+struct KIL_Packet : public Packet {
   public:
     KIL_Packet() {
         packet_type = KIL;
