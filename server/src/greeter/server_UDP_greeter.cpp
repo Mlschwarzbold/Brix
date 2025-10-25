@@ -18,7 +18,7 @@ void *start_server(void *arg) {
     const auto self_ip = get_self_ip();
 
     (void)udp_server_greeter::server_discovery_service(
-        port, (char *)self_ip.c_str(), 4001);
+        port, (char *)self_ip.c_str(), port + 1);
     return nullptr;
 }
 
