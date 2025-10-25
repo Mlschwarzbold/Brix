@@ -18,7 +18,7 @@ DbManager::DbManager() {
 
     /// Initialize global acessor, used to indicate when a thead is in the
     /// process of acquiring locks
-    pthread_mutex_init(&database_access_lock, NULL);
+    pthread_mutex_init(&database_access_lock, {});
 
     // Client locks are used to avoid two threads trying to read or modify info
     // about two clients at the same time.
@@ -42,7 +42,7 @@ DbManager::~DbManager() {
 const db_record_response DbManager::get_client_info(in_addr_t client_ip) {
     try {
         // Client found, return success
-        return {true, &database_records.at(client_ip),
+        return {true, database_records.at(client_ip),
                 db_record_response::Description::SUCCESS};
 
     } catch (std::out_of_range const &) {
@@ -62,7 +62,7 @@ const db_record_response DbManager::register_client(in_addr_t client_ip) {
 
     // Create a mutex for the new client
     pthread_mutex_t *client_mutex = (pthread_mutex_t *)malloc(sizeof(sem_t));
-    pthread_mutex_init(client_mutex, NULL);
+    pthread_mutex_init(client_mutex, {});
     // Lock the database since we are going to access the client locks
     lock_database();
 
@@ -83,7 +83,7 @@ const db_record_response DbManager::register_client(in_addr_t client_ip) {
         pthread_mutex_destroy(client_mutex);
         free(client_mutex);
         unlock_client(client_ip);
-        return {false, nullptr, db_record_response::Description::DUPLICATE_IP};
+        return {false, {}, db_record_response::Description::DUPLICATE_IP};
     }
 
     //  Try to insert new client
@@ -106,7 +106,7 @@ const db_record_response DbManager::register_client(in_addr_t client_ip) {
         free(client_mutex);
         unlock_client(client_ip);
 
-        return {false, nullptr, db_record_response::Description::DUPLICATE_IP};
+        return {false, {}, db_record_response::Description::DUPLICATE_IP};
     }
 
     unlock_client(client_ip);
@@ -116,7 +116,7 @@ const db_record_response DbManager::register_client(in_addr_t client_ip) {
     total_balance += STARTING_BALANCE;
     unlock_database();
 
-    return {true, &insertion_result.first->second,
+    return {true, insertion_result.first->second,
             db_record_response::Description::SUCCESS};
 };
 
@@ -130,7 +130,7 @@ DbManager::make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
         lock_client(sender_ip);
     } catch (std::out_of_range const &) {
         unlock_database();
-        return {false, NULL, db_record_response::UNKNOWN_SENDER};
+        return {false, {}, db_record_response::UNKNOWN_SENDER};
     }
 
     try {
@@ -164,7 +164,7 @@ DbManager::make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
         std::cerr << "[DATABASE ERROR]: Client retrieval failed after mutex "
                      "acquisition succeded!"
                   << std::endl;
-        return {false, NULL, db_record_response::UNKNOWN_SENDER};
+        return {false, {}, db_record_response::UNKNOWN_SENDER};
     }
 
     // Retrieve receiver_info
@@ -179,7 +179,7 @@ DbManager::make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
         std::cerr << "[DATABASE ERROR]: Client retrieval failed after mutex "
                      "acquisition succeded!"
                   << std::endl;
-        return {false, sender, db_record_response::UNKNOWN_RECEIVER};
+        return {false, *sender, db_record_response::UNKNOWN_RECEIVER};
     }
 
     // Always increase request index
@@ -187,7 +187,7 @@ DbManager::make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
 
     // Verify sender balance
     if (sender->balance < transfer_amount) {
-        return {false, sender, db_record_response::INSUFFICIENT_BALANCE};
+        return {false, *sender, db_record_response::INSUFFICIENT_BALANCE};
     }
 
     // Register transaction
@@ -203,7 +203,7 @@ DbManager::make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
     unlock_client(sender_ip);
     unlock_client(receiver_ip);
 
-    return {true, sender, db_record_response::SUCCESS};
+    return {true, *sender, db_record_response::SUCCESS};
 }
 
 const db_record_response DbManager::remove_client(in_addr_t client_ip) {
@@ -214,7 +214,7 @@ const db_record_response DbManager::remove_client(in_addr_t client_ip) {
         lock_client(client_ip);
     } catch (std::out_of_range const &) {
         unlock_database();
-        return {false, NULL, db_record_response::NOT_FOUND};
+        return {false, {}, db_record_response::NOT_FOUND};
     }
 
     // Finished getting the lock
@@ -228,7 +228,7 @@ const db_record_response DbManager::remove_client(in_addr_t client_ip) {
         std::cerr << "[DATABASE ERROR]: Client search failed after mutex "
                      "acquisition succeded!"
                   << std::endl;
-        return {false, NULL, db_record_response::NOT_FOUND};
+        return {false, {}, db_record_response::NOT_FOUND};
     }
 
     // Remove the client from the database
@@ -238,7 +238,7 @@ const db_record_response DbManager::remove_client(in_addr_t client_ip) {
                      "acquisition succeded!"
                   << std::endl;
         unlock_client(client_ip);
-        return {false, NULL, db_record_response::NOT_FOUND};
+        return {false, {}, db_record_response::NOT_FOUND};
     }
 
     lock_database();
@@ -252,7 +252,7 @@ const db_record_response DbManager::remove_client(in_addr_t client_ip) {
         std::cerr << "[DATABASE ERROR]: Client lock removal failed after mutex "
                      "acquisition succeded!"
                   << std::endl;
-        return {false, NULL, db_record_response::NOT_FOUND};
+        return {false, {}, db_record_response::NOT_FOUND};
     }
 
     lock_database();
@@ -260,7 +260,7 @@ const db_record_response DbManager::remove_client(in_addr_t client_ip) {
     total_balance -= client_balance;
     unlock_database();
 
-    return {true, NULL, db_record_response::SUCCESS
+    return {true, {}, db_record_response::SUCCESS
 
     };
 }

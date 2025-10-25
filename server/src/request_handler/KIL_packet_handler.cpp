@@ -15,8 +15,8 @@ void process_kill_packet(const struct sockaddr_in sender_addr,
     std::string reply;
 
     if (result.success) {
-        reply = ACK_Packet(packet.seq_num, "KILL", result.record->balance,
-                           sender_ip, 0, -result.record->balance)
+        reply = ACK_Packet(packet.seq_num, "KILL", result.record.balance,
+                           sender_ip, 0, -result.record.balance)
                     .to_string();
     } else {
         reply =

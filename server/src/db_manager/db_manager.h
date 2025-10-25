@@ -25,7 +25,7 @@ struct client_record {
 //   of the request (mostly related to different types of error).
 struct db_record_response {
     bool success;
-    client_record *record;
+    client_record record;
     enum Description {
         SUCCESS,
         DUPLICATE_IP,

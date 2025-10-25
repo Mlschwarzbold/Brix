@@ -34,14 +34,14 @@ std::string process_db_transaction(in_addr_t sender_ip, REQ_Packet packet) {
 
     case db_manager::db_record_response::SUCCESS:
         //
-        return ACK_Packet(packet.seq_num, "SUCC", result.record->balance,
+        return ACK_Packet(packet.seq_num, "SUCC", result.record.balance,
                           sender_ip, packet.receiver_ip, packet.transfer_amount)
             .to_string();
         break;
     case db_manager::db_record_response::INSUFFICIENT_BALANCE:
     case db_manager::db_record_response::UNKNOWN_RECEIVER:
         // Just reply with the client's balance and inform failure of
-        return ACK_Packet(packet.seq_num, "FAIL", result.record->balance,
+        return ACK_Packet(packet.seq_num, "FAIL", result.record.balance,
                           sender_ip, packet.receiver_ip, packet.transfer_amount)
             .to_string();
         // operation
