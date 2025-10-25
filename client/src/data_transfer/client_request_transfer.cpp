@@ -100,9 +100,10 @@ void RequestDispatcher::dispatch_request(std::string request) {
                 std::cout << parsed_response.result;
                 std::cout << RESET << std::endl;
             } catch (std::exception const &) {
-                std::cerr << RED
-                          << "Failed to parse input into ACK : " << response
-                          << RESET;
+                std::cerr << BLUE
+                          << "[REQUEST DISPATCHER] Failed to parse response "
+                             "into ACK : "
+                          << response << RESET;
 
                 // Keep trying to send
                 continue;
@@ -111,8 +112,10 @@ void RequestDispatcher::dispatch_request(std::string request) {
             return;
         }
 
-        std::cerr << "Timeout or error receiving response, retrying..."
-                  << std::endl;
+        std::cerr << BLUE
+                  << "[REQUEST DISPATCHER] Timeout or error receiving "
+                     "response, retrying..."
+                  << RESET << std::endl;
 
         retries++;
     }

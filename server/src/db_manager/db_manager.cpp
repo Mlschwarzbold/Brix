@@ -270,7 +270,7 @@ const db_record_response DbManager::remove_client(in_addr_t client_ip) {
 }
 
 const db_metadata DbManager::get_db_metadata() {
-    return {num_transactions, total_transferred, num_transactions};
+    return {num_transactions, total_transferred, total_balance};
 }
 
 void DbManager::print_record(client_record client) {

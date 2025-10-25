@@ -62,16 +62,15 @@ void server_discovery_service(int discovery_service_port,
         n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL,
                      (struct sockaddr *)&cliaddr, &len);
         buffer[n] = '\0';
-        std::cout << GREEN
-                  << "Discovery request from: " << inet_ntoa(cliaddr.sin_addr)
-                  << ":" << ntohs(cliaddr.sin_port) << RESET << std::endl;
 
         db_instance->register_client(cliaddr.sin_addr.s_addr);
 
         sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM,
                (const struct sockaddr *)&cliaddr, len);
-        std::cout << GREEN << "Location message delivered." << RESET
-                  << std::endl;
+
+        std::cout << GREEN
+                  << "Discovery request from: " << inet_ntoa(cliaddr.sin_addr)
+                  << ":" << ntohs(cliaddr.sin_port) << RESET << std::endl;
     }
 }
 
