@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     int return_server_port;
     if (client_discovery_protocol(return_server_ip, &return_server_port,
                                   (char *)"255.255.255.255", port, 5,
-                                  10) == 0) {
+                                  500) == 0) {
         std::cout << "Server found at IP: " << return_server_ip
                   << " Port: " << return_server_port << std::endl;
     } else {
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 
     client_request_transfer::RequestDispatcher *request_processor =
         client_request_transfer::RequestDispatcher::get_instance(
-            return_server_ip, return_server_port, 10);
+            return_server_ip, return_server_port, 500);
 
     // Process user text
     std::string input;
