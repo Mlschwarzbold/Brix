@@ -13,6 +13,7 @@ class String_Packet : public std::string {
     // to packet method
     REQ_Packet to_REQ_Packet();
     ACK_Packet to_ACK_Packet();
+    KIL_Packet to_KIL_Packet();
 
     Packet_type type();
 };

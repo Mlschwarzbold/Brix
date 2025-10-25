@@ -59,6 +59,23 @@ ACK_Packet String_Packet::to_ACK_Packet() {
                       transfer_amount);
 };
 
+KIL_Packet String_Packet::to_KIL_Packet() {
+    // Split the string into tokens
+    std::istringstream iss(*this);
+    std::string token;
+    std::vector<std::string> tokens;
+
+    while (iss >> token) {
+        tokens.push_back(token);
+    }
+
+    if (tokens.size() != 2 || tokens[0] != "KIL" || tokens[1] != "END") {
+        throw std::invalid_argument("Invalid KIL packet format");
+    }
+
+    return KIL_Packet();
+};
+
 Packet_type String_Packet::type() {
     // Determine the packet type based on the first 3 characters
     if (this->substr(0, 3) == "REQ") {
@@ -67,7 +84,7 @@ Packet_type String_Packet::type() {
         return ACK;
     } else if (this->substr(0, 3) == "ERR") {
         return ERR;
-    } else if (this->substr(0, 3) == "KILL") {
+    } else if (this->substr(0, 3) == "KIL") {
         return KIL;
     } else {
         return ERR;

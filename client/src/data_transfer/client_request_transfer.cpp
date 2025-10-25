@@ -44,11 +44,7 @@ RequestDispatcher::RequestDispatcher(char request_server_ip[],
     request_dispatcher_thread.detach();
 };
 
-RequestDispatcher::~RequestDispatcher() {
-    close(sockfd);
-    pthread_mutex_destroy(&request_queue_lock);
-    is_alive = false;
-}
+RequestDispatcher::~RequestDispatcher() { is_alive = false; }
 
 void RequestDispatcher::queue_request(std::string request) {
     pthread_mutex_lock(&request_queue_lock);
@@ -57,6 +53,8 @@ void RequestDispatcher::queue_request(std::string request) {
 };
 
 void RequestDispatcher::dispatch_request(std::string request) {
+    std::cout << CYAN << "[REQUEST DISPATCHER] Dispatching: " << request
+              << RESET << std::endl;
     int n = -1, retries = 0;
     socklen_t len;
     std::string msg;
@@ -119,6 +117,9 @@ void RequestDispatcher::process_requests() {
             dispatch_request(request);
         }
     }
+
+    close(sockfd);
+    pthread_mutex_destroy(&request_queue_lock);
 };
 
 RequestDispatcher *RequestDispatcher::get_instance(char *request_server_ip,

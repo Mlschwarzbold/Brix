@@ -237,6 +237,7 @@ const db_record_response DbManager::remove_client(in_addr_t client_ip) {
         std::cerr << "[DATABASE ERROR]: Client removal failed after mutex "
                      "acquisition succeded!"
                   << std::endl;
+        unlock_client(client_ip);
         return {false, NULL, db_record_response::NOT_FOUND};
     }
 

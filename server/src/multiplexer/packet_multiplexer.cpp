@@ -4,6 +4,7 @@
 #include "packet_indexer.h"
 #include "packets/packets.h"
 #include "packets/string_packets.h"
+#include "request_handler/KIL_packet_handler.h"
 #include "request_handler/REQ_packet_handler.h"
 #include <arpa/inet.h>
 #include <bits/stdc++.h>
@@ -80,6 +81,11 @@ int packet_multiplexer(int port) {
             }
 
         } else if (packet_type == KIL) {
+            KIL_Packet kill_packet = str_packet.to_KIL_Packet();
+            std::thread kill_thread(requests::process_kill_packet, cliaddr,
+                                    kill_packet, sockfd);
+
+            kill_thread.detach();
         } else {
             std::cout << RED << "Unexpected Packet Type" << RESET << std::endl;
         }

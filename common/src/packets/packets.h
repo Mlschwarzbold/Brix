@@ -64,4 +64,15 @@ class ACK_Packet : public Packet {
     std::string to_string();
 };
 
+class KIL_Packet : public Packet {
+  public:
+    KIL_Packet() {
+        packet_type = KIL;
+        seq_num = -1;
+    };
+
+    // to string method
+    std::string to_string();
+};
+
 #endif // PACKETS_H

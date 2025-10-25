@@ -2,7 +2,6 @@
 #include "data_transfer/socket_utils.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <string.h>
 #include <string>
 
 // translates a packet to string
@@ -62,4 +61,14 @@ std::string ACK_Packet::to_string() {
     packet_str += "END";
     return packet_str;
 }
-// ACK seq_num END
+
+// KIL END
+std::string KIL_Packet::to_string() {
+    std::string packet_str;
+
+    packet_str = "ACK";
+    packet_str += " ";
+    packet_str += "END";
+
+    return packet_str;
+}
