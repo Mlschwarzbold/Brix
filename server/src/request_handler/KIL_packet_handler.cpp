@@ -4,8 +4,13 @@
 
 namespace requests {
 
-void process_kill_packet(const struct sockaddr_in sender_addr,
-                         KIL_Packet packet, int reply_sockfd) {
+void *process_kill_packet(void *arg) {
+
+    process_kill_packet_params params = *(process_kill_packet_params *)arg;
+
+    struct sockaddr_in sender_addr = params.sender_addr;
+    KIL_Packet packet = params.packet;
+    int reply_sockfd = params.reply_sockfd;
 
     in_addr_t sender_ip = sender_addr.sin_addr.s_addr;
 
@@ -25,6 +30,8 @@ void process_kill_packet(const struct sockaddr_in sender_addr,
 
     sendto(reply_sockfd, reply.data(), reply.length(), MSG_CONFIRM,
            (const struct sockaddr *)&sender_addr, sizeof(sender_addr));
+
+    return nullptr;
 }
 
 } // namespace requests

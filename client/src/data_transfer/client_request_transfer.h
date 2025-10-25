@@ -20,7 +20,7 @@ class RequestDispatcher {
     RequestDispatcher(char request_server_ip[], int request_server_port,
                       int initial_timeout_ms);
 
-    static void process_requests();
+    static void *process_requests(void *arg);
 
     static void dispatch_request(std::string request);
 
@@ -29,6 +29,7 @@ class RequestDispatcher {
     static struct sockaddr_in servaddr;
     static pthread_mutex_t request_queue_lock;
     static bool is_alive;
+    static pthread_t request_dispatcher_thread;
 };
 
 } // namespace client_request_transfer

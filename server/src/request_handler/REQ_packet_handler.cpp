@@ -110,9 +110,14 @@ void print_request_info(in_addr_t sender_ip, REQ_Packet packet, bool is_dup,
     std::cout << RESET << std::endl;
 }
 
-void process_req_packet(const struct sockaddr_in sender_addr, REQ_Packet packet,
-                        multiplexer::Packet_indexer *indexer,
-                        int reply_sockfd) {
+void *process_req_packet(void *arg) {
+
+    process_req_packet_params params = *(process_req_packet_params *)arg;
+
+    struct sockaddr_in sender_addr = params.sender_addr;
+    REQ_Packet packet = params.packet;
+    multiplexer::Packet_indexer *indexer = params.indexer;
+    int reply_sockfd = params.reply_sockfd;
 
     in_addr_t sender_ip = sender_addr.sin_addr.s_addr;
     Packet_status status = indexer->index_packet(packet, sender_ip);
@@ -150,6 +155,8 @@ void process_req_packet(const struct sockaddr_in sender_addr, REQ_Packet packet,
     sendto(reply_sockfd, reply_string.data(), reply_string.length(),
            MSG_CONFIRM, (const struct sockaddr *)&sender_addr,
            sizeof(sender_addr));
+
+    return nullptr;
 }
 
 } // namespace requests

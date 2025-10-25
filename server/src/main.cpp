@@ -39,14 +39,16 @@ int main(int argc, char *argv[]) {
 
     print_startup_message(db_metadata);
 
-    std::thread greeter_thread(udp_server_greeter::start_server, port);
+    pthread_t greeter_thread, multiplexer_thread;
 
-    // Initiate packet multiplexer thread
-    std::thread multiplexer_thread(multiplexer::start_multiplexer_server,
-                                   port + 1);
+    pthread_create(&greeter_thread, NULL, udp_server_greeter::start_server,
+                   (void *)&port);
 
-    greeter_thread.join();
-    multiplexer_thread.join();
+    pthread_create(&multiplexer_thread, NULL,
+                   multiplexer::start_multiplexer_server, (void *)&port);
+
+    pthread_join(greeter_thread, NULL);
+    pthread_join(multiplexer_thread, NULL);
 
     delete db;
     return 0;

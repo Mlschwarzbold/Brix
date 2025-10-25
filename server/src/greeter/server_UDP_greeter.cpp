@@ -10,18 +10,16 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-
-
 namespace udp_server_greeter {
 
-int start_server(int port) {
+void *start_server(void *arg) {
+    int port = *(int *)arg;
 
     const auto self_ip = get_self_ip();
 
-    (void) udp_server_greeter::server_discovery_service(port, (char *)self_ip.c_str(),
-                                                 4001);
-
-    return 0;
+    (void)udp_server_greeter::server_discovery_service(
+        port, (char *)self_ip.c_str(), 4001);
+    return nullptr;
 }
 
 // Stupid trick to get the local ip of server:

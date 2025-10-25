@@ -15,7 +15,8 @@
 
 namespace multiplexer {
 
-int start_multiplexer_server(int port) {
+void *start_multiplexer_server(void *arg) {
+    int port = (*(int *)arg) + 1;
 
     std::cout << BLUE << "Starting Packet Multiplexer on port " << port << RESET
               << std::endl;
@@ -63,10 +64,14 @@ int packet_multiplexer(int port) {
         if (packet_type == REQ) {
             try {
                 REQ_Packet req_packet = str_packet.to_REQ_Packet();
-                std::thread req_thread(requests::process_req_packet, cliaddr,
-                                       req_packet, &indexer, sockfd);
 
-                req_thread.detach();
+                pthread_t req_thread;
+
+                requests::process_req_packet_params params = {
+                    cliaddr, req_packet, &indexer, sockfd};
+
+                pthread_create(&req_thread, NULL, requests::process_req_packet,
+                               &params);
 
             } catch (const std::exception &e) {
                 std::cerr << RED << "Error parsing REQ Packet: " << e.what()
@@ -75,10 +80,14 @@ int packet_multiplexer(int port) {
 
         } else if (packet_type == KIL) {
             KIL_Packet kill_packet = str_packet.to_KIL_Packet();
-            std::thread kill_thread(requests::process_kill_packet, cliaddr,
-                                    kill_packet, sockfd);
 
-            kill_thread.detach();
+            pthread_t kill_thread;
+
+            requests::process_kill_packet_params params = {cliaddr, kill_packet,
+                                                           sockfd};
+
+            pthread_create(&kill_thread, NULL, requests::process_req_packet,
+                           &params);
         } else {
             std::cout << RED << "Unexpected Packet Type" << RESET << std::endl;
         }

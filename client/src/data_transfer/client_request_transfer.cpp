@@ -19,6 +19,7 @@ int RequestDispatcher::sockfd;
 struct sockaddr_in RequestDispatcher::servaddr;
 pthread_mutex_t RequestDispatcher::request_queue_lock;
 bool RequestDispatcher::is_alive;
+pthread_t RequestDispatcher::request_dispatcher_thread;
 
 RequestDispatcher::RequestDispatcher(char request_server_ip[],
                                      int request_server_port,
@@ -39,12 +40,16 @@ RequestDispatcher::RequestDispatcher(char request_server_ip[],
     // Filling server information
     servaddr = create_sockaddr(request_server_ip, request_server_port);
 
-    std::thread request_dispatcher_thread(process_requests);
+    // std::thread request_dispatcher_thread(process_requests);
 
-    request_dispatcher_thread.detach();
+    pthread_create(&request_dispatcher_thread, NULL,
+                   RequestDispatcher::process_requests, NULL);
 };
 
-RequestDispatcher::~RequestDispatcher() { is_alive = false; }
+RequestDispatcher::~RequestDispatcher() {
+    is_alive = false;
+    pthread_join(request_dispatcher_thread, NULL);
+}
 
 void RequestDispatcher::queue_request(std::string request) {
     pthread_mutex_lock(&request_queue_lock);
@@ -116,7 +121,7 @@ void RequestDispatcher::dispatch_request(std::string request) {
     std::cerr << "Too many retries, giving up." << std::endl;
 }
 
-void RequestDispatcher::process_requests() {
+void *RequestDispatcher::process_requests(void *arg) {
     while (is_alive) {
         if (request_queue.empty()) {
             // This could be done using a semaphore for signaling, but I
@@ -134,6 +139,7 @@ void RequestDispatcher::process_requests() {
 
     close(sockfd);
     pthread_mutex_destroy(&request_queue_lock);
+    return nullptr;
 };
 
 RequestDispatcher *RequestDispatcher::get_instance(char *request_server_ip,
