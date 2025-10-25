@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-const int MAXLINE = 1024;
+const int MAXLINE = 2048;
 
 // Client Discovery Protocol
 // This function initiates the discovery protocol, sending a broadcasted UDP

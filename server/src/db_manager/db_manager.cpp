@@ -23,6 +23,10 @@ DbManager::DbManager() {
     // Client locks are used to avoid two threads trying to read or modify info
     // about two clients at the same time.
     client_locks = std::unordered_map<in_addr_t, pthread_mutex_t *>();
+
+    total_transferred = 0;
+    num_transactions = 0;
+    total_balance = 0;
 }
 
 DbManager::~DbManager() {

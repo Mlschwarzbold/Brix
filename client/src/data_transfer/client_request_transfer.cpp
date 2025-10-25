@@ -11,7 +11,7 @@
 
 namespace client_request_transfer {
 
-const int MAXLINE = 1024;
+const int MAXLINE = 2048;
 const int MAX_RETRIES = 5;
 
 std::queue<std::string> RequestDispatcher::request_queue;
@@ -53,7 +53,7 @@ void RequestDispatcher::queue_request(std::string request) {
 };
 
 void RequestDispatcher::dispatch_request(std::string request) {
-    std::cout << CYAN << "[REQUEST DISPATCHER] Dispatching: " << request
+    std::cout << BLUE << "[REQUEST DISPATCHER] Dispatching: " << request
               << RESET << std::endl;
     int n = -1, retries = 0;
     socklen_t len;
@@ -76,11 +76,25 @@ void RequestDispatcher::dispatch_request(std::string request) {
                 ACK_Packet parsed_response = response.to_ACK_Packet();
                 // 2024-10-01 18:37:01 server 10.1.1.20 id_req 1 dest 10.1.1.3
                 // value 10 new balance
-                std::cout << getCurrentDateString() << " "
-                          << getCurrentTimeString() << " server "
-                          << addr_to_string(servaddr.sin_addr.s_addr)
-                          << " id_req " << parsed_response.seq_num << " dest "
-                          << parsed_response.receiver_ip << std::endl;
+                std::cout << CYAN << getCurrentDateString() << " "
+                          << getCurrentTimeString();
+                std::cout << " server "
+                          << addr_to_string(servaddr.sin_addr.s_addr);
+                std::cout << " id_req " << parsed_response.seq_num;
+                std::cout << " dest "
+                          << addr_to_string(parsed_response.receiver_ip);
+                std::cout << " value " << parsed_response.transfer_amount;
+                std::cout << " new_balance " << parsed_response.new_balance;
+
+                std::cout << " result ";
+                if (parsed_response.result == "SUCCESS") {
+                    std::cout << GREEN;
+                } else {
+                    std::cout << RED;
+                }
+
+                std::cout << parsed_response.result;
+                std::cout << RESET << std::endl;
             } catch (std::exception const &) {
                 std::cerr << RED
                           << "Failed to parse input into ACK : " << response

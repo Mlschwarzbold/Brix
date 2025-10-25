@@ -63,13 +63,6 @@ int packet_multiplexer(int port) {
         if (packet_type == REQ) {
             try {
                 REQ_Packet req_packet = str_packet.to_REQ_Packet();
-                std::cout << GREEN
-                          << "REQ Packet - Seq Num: " << req_packet.seq_num
-                          << " Receiver IP: "
-                          << inet_ntoa(*(in_addr *)&req_packet.receiver_ip)
-                          << " Transfer Amount: " << req_packet.transfer_amount
-                          << RESET << std::endl;
-
                 std::thread req_thread(requests::process_req_packet, cliaddr,
                                        req_packet, &indexer, sockfd);
 

@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 const int PORT = 5000;
-const int MAXLINE = 1024;
+const int MAXLINE = 2048;
 
 int client_UDP_broadcast() {
     int sockfd;

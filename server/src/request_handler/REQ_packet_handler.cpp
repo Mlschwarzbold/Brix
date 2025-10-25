@@ -1,5 +1,7 @@
 #include "REQ_packet_handler.h"
 #include "colors.h"
+#include "data_transfer/socket_utils.h"
+#include "date_time_utils.h"
 #include "db_manager/db_manager.h"
 #include <iostream>
 
@@ -23,9 +25,9 @@ void print_status(Packet_status status) {
     }
 }
 
-std::string process_db_transaction(in_addr_t sender_ip, REQ_Packet packet) {
+ACK_Packet process_db_transaction(in_addr_t sender_ip, REQ_Packet packet,
+                                  db_manager::DbManager *db) {
     db_manager::db_record_response result;
-    auto db = db_manager::DbManager::get_instance();
 
     result = db->make_transaction(sender_ip, packet.receiver_ip,
                                   packet.transfer_amount);
@@ -34,17 +36,26 @@ std::string process_db_transaction(in_addr_t sender_ip, REQ_Packet packet) {
 
     case db_manager::db_record_response::SUCCESS:
         //
-        return ACK_Packet(packet.seq_num, "SUCC", result.record.balance,
-                          sender_ip, packet.receiver_ip, packet.transfer_amount)
-            .to_string();
+        return ACK_Packet(packet.seq_num, "SUCCESS", result.record.balance,
+                          sender_ip, packet.receiver_ip,
+                          packet.transfer_amount);
+
         break;
+
     case db_manager::db_record_response::INSUFFICIENT_BALANCE:
+        return ACK_Packet(packet.seq_num, "INSUFFICIENT_BALANCE",
+                          result.record.balance, sender_ip, packet.receiver_ip,
+                          packet.transfer_amount);
+
+        break;
+
     case db_manager::db_record_response::UNKNOWN_RECEIVER:
         // Just reply with the client's balance and inform failure of
-        return ACK_Packet(packet.seq_num, "FAIL", result.record.balance,
-                          sender_ip, packet.receiver_ip, packet.transfer_amount)
-            .to_string();
         // operation
+        return ACK_Packet(packet.seq_num, "RECEIVER_NOT_REGISTERED",
+                          result.record.balance, sender_ip, packet.receiver_ip,
+                          packet.transfer_amount);
+
         break;
 
     case db_manager::db_record_response::UNKNOWN_SENDER:
@@ -53,9 +64,9 @@ std::string process_db_transaction(in_addr_t sender_ip, REQ_Packet packet) {
                      "registered in database! "
                   << RESET << std::endl;
 
-        return ACK_Packet(packet.seq_num, "UKNW", 0, sender_ip,
-                          packet.receiver_ip, packet.transfer_amount)
-            .to_string();
+        return ACK_Packet(packet.seq_num, "SENDER_NOT_REGISTERED", 0, sender_ip,
+                          packet.receiver_ip, packet.transfer_amount);
+
         break;
 
     case db_manager::db_record_response::NOT_FOUND:
@@ -66,10 +77,37 @@ std::string process_db_transaction(in_addr_t sender_ip, REQ_Packet packet) {
                      "from database: "
                   << result.status_code << RESET << std::endl;
         return ACK_Packet(packet.seq_num, "UKNW", 0, sender_ip,
-                          packet.receiver_ip, packet.transfer_amount)
-            .to_string();
+                          packet.receiver_ip, packet.transfer_amount);
+
         break;
     }
+}
+
+void print_request_info(in_addr_t sender_ip, REQ_Packet packet, bool is_dup,
+                        bool is_out_of_order, db_manager::DbManager *db) {
+    // 2025-09-11 18:37:01 client 10.1.1.2 id_req 1 dest 10.1.1.3 value 10
+    // num transactions 1 total transferred 10 total balance 300
+    // Request info
+    std::cout << CYAN;
+    std::cout << getCurrentDateString() << " " << getCurrentTimeString();
+    std::cout << " client " << addr_to_string(sender_ip);
+    std::cout << " id_req " << packet.seq_num;
+    if (is_dup) {
+        std::cout << RED << " DUPLICATE! " << CYAN;
+    } else if (is_out_of_order) {
+        std::cout << RED << " OUT_OF_ORDER! " << CYAN;
+    }
+    std::cout << " dest " << addr_to_string(packet.receiver_ip);
+    std::cout << " value " << packet.transfer_amount;
+    std::cout << RESET << std::endl;
+
+    // Server info
+    db_manager::db_metadata db_metadata = db->get_db_metadata();
+    std::cout << BLUE;
+    std::cout << "num_transactions " << db_metadata.num_transactions;
+    std::cout << " total_transferred " << db_metadata.total_transferred;
+    std::cout << " total_balance " << db_metadata.total_balance;
+    std::cout << RESET << std::endl;
 }
 
 void process_req_packet(const struct sockaddr_in sender_addr, REQ_Packet packet,
@@ -78,29 +116,40 @@ void process_req_packet(const struct sockaddr_in sender_addr, REQ_Packet packet,
 
     in_addr_t sender_ip = sender_addr.sin_addr.s_addr;
     Packet_status status = indexer->index_packet(packet, sender_ip);
+    auto db = db_manager::DbManager::get_instance();
 
-    std::string reply;
+    ACK_Packet reply;
 
     switch (status) {
     case VALID:
-        reply = process_db_transaction(sender_ip, packet);
+        reply = process_db_transaction(sender_ip, packet, db);
+        print_request_info(sender_ip, packet, false, false, db);
         break;
 
     case DUPLICATE:
+        reply = ACK_Packet(packet.seq_num, "DUPLICATE", 0, sender_ip,
+                           packet.receiver_ip, packet.transfer_amount);
+        print_request_info(sender_ip, packet, true, false, db);
+        break;
+
     case OUT_OF_ORDER:
-        reply = ACK_Packet(packet.seq_num, "B_ID", 0, sender_ip,
-                           packet.receiver_ip, packet.transfer_amount)
-                    .to_string();
+        reply = ACK_Packet(packet.seq_num, "OUT_OF_ORDER", 0, sender_ip,
+                           packet.receiver_ip, packet.transfer_amount);
+        print_request_info(sender_ip, packet, false, true, db);
+
         break;
 
     case NO_CLUE:
-        reply = ACK_Packet(packet.seq_num, "UKNW", 0, sender_ip,
-                           packet.receiver_ip, packet.transfer_amount)
-                    .to_string();
+        reply = ACK_Packet(packet.seq_num, "UNKOWN_STATUS", 0, sender_ip,
+                           packet.receiver_ip, packet.transfer_amount);
+        std::cerr << RED << "[REQUEST PROCESSOR] INVALID STATUS!" << std::endl;
     }
 
-    sendto(reply_sockfd, reply.data(), reply.length(), MSG_CONFIRM,
-           (const struct sockaddr *)&sender_addr, sizeof(sender_addr));
+    std::string reply_string = reply.to_string();
+
+    sendto(reply_sockfd, reply_string.data(), reply_string.length(),
+           MSG_CONFIRM, (const struct sockaddr *)&sender_addr,
+           sizeof(sender_addr));
 }
 
 } // namespace requests

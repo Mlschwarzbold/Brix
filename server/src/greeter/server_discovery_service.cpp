@@ -13,7 +13,7 @@
 
 namespace udp_server_greeter {
 
-const int MAXLINE = 1024;
+const int MAXLINE = 2048;
 
 // Server Discovery Service
 // This function implements a UDP server that listens for discovery requests

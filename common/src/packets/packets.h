@@ -48,6 +48,8 @@ class ACK_Packet : public Packet {
     in_addr_t receiver_ip;
     int transfer_amount;
 
+    ACK_Packet() {}
+
     ACK_Packet(long int seq, std::string res, unsigned long int balance,
                in_addr_t sender_ip, in_addr_t receiver_ip,
                int transfer_amount) {
