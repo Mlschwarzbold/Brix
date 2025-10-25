@@ -59,6 +59,7 @@ int main(int argc, char *argv[]) {
 
         request_processor->queue_request(input);
     }
+    request_processor->queue_request("KIL END");
 
     delete request_processor;
     return 0;

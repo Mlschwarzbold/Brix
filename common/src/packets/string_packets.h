@@ -1,14 +1,10 @@
 #ifndef STRING_PACKETS_H
 #define STRING_PACKETS_H
 
+#include "packets.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <string.h>
 #include <string>
-#include <stdexcept>
-#include <sstream>
-#include <vector>
-#include "packets.h"
 
 class String_Packet : public std::string {
   public:
@@ -16,9 +12,9 @@ class String_Packet : public std::string {
 
     // to packet method
     REQ_Packet to_REQ_Packet();
+    ACK_Packet to_ACK_Packet();
 
-    Packet_type type(); 
-    
+    Packet_type type();
 };
 
 #endif // STRING_PACKETS_H

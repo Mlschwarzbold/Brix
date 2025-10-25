@@ -1,9 +1,9 @@
 #include "packets.h"
+#include "data_transfer/socket_utils.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <string>
-
 
 // translates a packet to string
 // example:
@@ -26,25 +26,40 @@ std::string REQ_Packet::to_string() {
     packet_str += " END";
 
     return packet_str;
-
 }
 
-
-// ANS seq_num result new_balance END
-std::string ANS_Packet::to_string() {
+// ACK seq_num result new_balance sender_ip receiver_ip transfer_amount END
+std::string ACK_Packet::to_string() {
     std::string packet_str;
 
-    packet_str = "ANS";
+    packet_str = "ACK";
     packet_str += " ";
+
     // sequence number
     packet_str += std::to_string(seq_num);
     packet_str += " ";
+
     // result
-    packet_str += (result ? "SUCC" : "FAIL");
+    packet_str += result;
     packet_str += " ";
+
     // new balance
     packet_str += std::to_string(new_balance);
-    packet_str += " END";
+    packet_str += " ";
+
+    // sender_ip
+    packet_str += addr_to_string(sender_ip);
+    packet_str += " ";
+
+    // receiver_ip
+    packet_str += addr_to_string(receiver_ip);
+    packet_str += " ";
+
+    // transfer_amount
+    packet_str += std::to_string(transfer_amount);
+    packet_str += " ";
+
+    packet_str += "END";
     return packet_str;
 }
 // ACK seq_num END

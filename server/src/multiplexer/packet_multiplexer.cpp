@@ -79,6 +79,7 @@ int packet_multiplexer(int port) {
                           << RESET << std::endl;
             }
 
+        } else if (packet_type == KIL) {
         } else {
             std::cout << RED << "Unexpected Packet Type" << RESET << std::endl;
         }

@@ -3,33 +3,25 @@
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <string.h>
 #include <string>
 
 // Packet type enum
-typedef enum _packet_type {
-        REQ,
-        ANS,
-        ACK,
-        ERR
-    } Packet_type;
+typedef enum _packet_type { REQ, ACK, ERR, KIL } Packet_type;
 
 // Packet status enum
 typedef enum _packet_status {
-        VALID,
-        DUPLICATE,
-        OUT_OF_ORDER,
-        NO_CLUE
-    } Packet_status;
-
-
+    VALID,
+    DUPLICATE,
+    OUT_OF_ORDER,
+    NO_CLUE
+} Packet_status;
 
 // Packet class
-class Packet {        
-  public:        
-    Packet_type packet_type;  
+class Packet {
+  public:
+    Packet_type packet_type;
     long int seq_num;
-}; 
+};
 
 // REQ packet class
 class REQ_Packet : public Packet {
@@ -45,23 +37,31 @@ class REQ_Packet : public Packet {
 
     // to string method
     std::string to_string();
-};  
+};
 
-// ANS packet class
-class ANS_Packet : public Packet {
+// ACK packet class
+class ACK_Packet : public Packet {
   public:
-    bool result;
-    long int new_balance;
-    ANS_Packet(long int seq, bool res, long int balance) {
-        packet_type = ANS;
+    std::string result;
+    unsigned long int new_balance;
+    in_addr_t sender_ip;
+    in_addr_t receiver_ip;
+    int transfer_amount;
+
+    ACK_Packet(long int seq, std::string res, unsigned long int balance,
+               in_addr_t sender_ip, in_addr_t receiver_ip,
+               int transfer_amount) {
+        packet_type = ACK;
         seq_num = seq;
         result = res;
         new_balance = balance;
+        this->sender_ip = sender_ip;
+        this->receiver_ip = sender_ip;
+        this->transfer_amount = transfer_amount;
     }
+
     // to string method
     std::string to_string();
 };
-
-
 
 #endif // PACKETS_H
