@@ -6,7 +6,6 @@
 #include <cstring>
 #include <iostream>
 #include <queue>
-#include <thread>
 #include <unistd.h>
 
 namespace client_request_transfer {
@@ -127,7 +126,9 @@ void *RequestDispatcher::process_requests(void *arg) {
             // This could be done using a semaphore for signaling, but I
             // believe this to be somewhat more semantic and
             // straightforward.
-            std::this_thread::yield();
+
+            // pthread_yield() is deprecated!
+            sched_yield();
         } else {
             pthread_mutex_lock(&request_queue_lock);
             auto request = request_queue.front();

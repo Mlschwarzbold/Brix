@@ -86,7 +86,7 @@ int packet_multiplexer(int port) {
             requests::process_kill_packet_params params = {cliaddr, kill_packet,
                                                            sockfd};
 
-            pthread_create(&kill_thread, NULL, requests::process_req_packet,
+            pthread_create(&kill_thread, NULL, requests::process_kill_packet,
                            &params);
         } else {
             std::cout << RED << "Unexpected Packet Type" << RESET << std::endl;
