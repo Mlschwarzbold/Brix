@@ -34,9 +34,9 @@ class RequestDispatcher {
 
         std::string target_ip = (tokens.size() > 1) ? tokens[1] : "10.33.1.2";
 
-        for (int i = 1; i <= 10000; i++) {
+        for (int i = 1; i <= 1000; i++) {
             std::uniform_int_distribution<> dist(0, 99);
-            int roll = dist(gen);
+            int roll = dist(gen) + 100;
             // 75% of the time, just use the correct package number
             queue_request(
                 REQ_Packet(i, inet_addr(target_ip.c_str()), 1).to_string());
