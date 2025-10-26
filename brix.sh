@@ -1,15 +1,15 @@
 BUILD_DIR="./build"
 DEFAULT_PORT=4000
-BUILD_TYPE="Debug" # "Debug" or "Release"
+DEFAULT_BUILD_TYPE="Debug"
 
-    
 set -e
 
 build() {
-    echo "- Building $BUILD_TYPE"
+    build_type="${1:-$DEFAULT_BUILD_TYPE}"
+    echo "- Building $build_type"
 
     mkdir -p "$BUILD_DIR"
-    cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$BUILD_TYPE" 
+    cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$build_type" 
     cd "$BUILD_DIR" || exit 1
     make -j 5
     cd ..
@@ -17,8 +17,9 @@ build() {
 
 server() {
     port="${1:-$DEFAULT_PORT}"
+    shift
     build "$@"
-    clear
+    # clear
     print_ip
     echo
     "$BUILD_DIR/server/servidor" "$port"
@@ -26,6 +27,7 @@ server() {
 
 client() {
     port="${1:-$DEFAULT_PORT}"
+    shift
     build "$@"
     clear
     print_ip
@@ -55,6 +57,8 @@ build_container() {
 }
 
 network() {
+    build_type="${1:-$DEFAULT_BUILD_TYPE}"
+    
     # Create a custom Docker network (bridge)
     docker network inspect brix-net >/dev/null 2>&1 || \
     docker network create brix-net
@@ -67,15 +71,15 @@ network() {
     tmux set-option -t $SESSION mouse on
 
     # Run server in first pane
-    tmux send-keys -t $SESSION "docker run --rm --network brix-net --name server -it brix server 4000" C-m
+    tmux send-keys -t $SESSION "docker run --rm --network brix-net --name server -it brix server 4000 $build_type" C-m
 
     # Split window vertically, run first client
     tmux split-window -h -t $SESSION
-    tmux send-keys -t $SESSION:0.1 "docker run --rm --network brix-net --name client1 -it brix client 4000" C-m
+    tmux send-keys -t $SESSION:0.1 "docker run --rm --network brix-net --name client1 -it brix client 4000 $build_type" C-m
 
     # Split again, run second client (below first client)
     tmux split-window -v -t $SESSION:0.1
-    tmux send-keys -t $SESSION:0.2 "docker run --rm --network brix-net --name  client2 -it brix client 4000" C-m
+    tmux send-keys -t $SESSION:0.2 "docker run --rm --network brix-net --name  client2 -it brix client 4000 $build_type" C-m
 
     # Attach to session
     tmux attach -t $SESSION
@@ -102,8 +106,9 @@ case "$1" in
         build_container
         ;;
     network)
+        shift
         build_container
-        network
+        network "$@"
         ;;
     clean)
         clean
