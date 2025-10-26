@@ -3,12 +3,14 @@
 #include <arpa/inet.h>
 #include <unordered_map>
 #include <bits/stdc++.h>
+#include <thread>
 #include "packet_multiplexer.h"
 #include "data_transfer/socket_utils.h"
 #include "colors.h"
 #include "packet_indexer.h"
 #include "packets/packets.h"
 #include "packets/string_packets.h"
+#include "request_handler/REQ_packet_handler.h"
 
 #define MAX_PACKET_SIZE 1024
 
@@ -30,7 +32,7 @@ int packet_multiplexer(int port){
     socklen_t len;
     struct sockaddr_in servaddr, cliaddr;
     char buffer[MAX_PACKET_SIZE+1]; //+1 for /0
-    Packet_status status;
+    Indexing_result result;
     Packet_indexer indexer = Packet_indexer();
     
 
@@ -73,8 +75,24 @@ int packet_multiplexer(int port){
                     << " Receiver IP: " << inet_ntoa(*(in_addr*)&req_packet.receiver_ip)
                     << " Transfer Amount: " << req_packet.transfer_amount << RESET << std::endl;
 
-                status = indexer.index_packet(req_packet, (in_addr_t)cliaddr.sin_addr.s_addr);
-                print_status(status);
+                result = indexer.index_packet(req_packet, (in_addr_t)cliaddr.sin_addr.s_addr);
+                print_status(result);
+
+                // Having found whether the packet is valid, duplicate or out of order,
+                // we create a thread to handle it.
+                // The indexing of incoming packets is done in the same thread as the multiplexer
+                // because it would be more complex to do it in a dedicated thread per packet
+                // as the newly spawned thread would not know what the seq number was supposed to be
+                // This could be solved having persistent threads to handle each client
+                // a.k.a having a connection oriented approach
+                // that would require more complex thread communication and would probably introduce busy wait
+
+
+                std::thread request_handler_thread(requests::route_REQ_packet, req_packet,
+                     (in_addr_t)cliaddr.sin_addr.s_addr,
+                        result.last_info
+                    );
+                request_handler_thread.detach();
 
             } catch (const std::exception& e) {
                 std::cerr << RED << "Error parsing REQ Packet: " << e.what() << RESET << std::endl;

@@ -51,5 +51,6 @@ int main(int argc, char *argv[]) {
 
     greeter_thread.join();
     multiplexer_thread.join();
+
     return 0;
 }

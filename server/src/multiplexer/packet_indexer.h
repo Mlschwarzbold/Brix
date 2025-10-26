@@ -9,8 +9,13 @@
 typedef struct _last_packet_info {
     long int last_seq_num;
     bool answer_sent;
-    void* last_response_placeholder;
+    void* last_response_placeholder; // refactor into char with max size 
 } Last_packet_info;
+
+typedef struct _indexing_result {
+    Packet_status status;
+    Last_packet_info* last_info;
+} Indexing_result;
 
 namespace multiplexer {
 
@@ -22,12 +27,12 @@ namespace multiplexer {
 
         Packet_indexer();
 
-        Packet_status index_packet(REQ_Packet packet, in_addr_t client_ip);
-;
+        Indexing_result index_packet(REQ_Packet packet, in_addr_t client_ip);
+
 
     };
 
-    void print_status(Packet_status status);
+    void print_status(Indexing_result result);
 
 } // namespace multiplexer
 

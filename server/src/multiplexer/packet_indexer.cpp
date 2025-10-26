@@ -11,7 +11,7 @@ namespace multiplexer {
         client_packet_table = std::unordered_map<in_addr_t, Last_packet_info>();
     }
 
-    Packet_status Packet_indexer::index_packet(REQ_Packet packet, in_addr_t client_ip){ 
+    Indexing_result Packet_indexer::index_packet(REQ_Packet packet, in_addr_t client_ip){ 
         std::cout << "Indexing packet with seq num: " << packet.seq_num << " from client: " << inet_ntoa(*(in_addr*)&client_ip) << std::endl;
 
         auto it = client_packet_table.find(client_ip);
@@ -23,32 +23,33 @@ namespace multiplexer {
             if (packet.seq_num == last_seq_num + 1) {
                 // If seq num is correct, update the table and return 1 (valid packet)
                 it->second.last_seq_num = packet.seq_num;
-                return VALID; 
+                return {VALID, &it->second};
             } else {
                 if (packet.seq_num <= last_seq_num) {
-                    return DUPLICATE;
+                    return {DUPLICATE, &it->second};
                 } else {
-                    return OUT_OF_ORDER;
+                    return {OUT_OF_ORDER, &it->second}; // should never happen with stop-and-wait
                 }
             }
         } else {
             // New client, check if seq num is 1
             std::cout << "New client detected: " << inet_ntoa(*(in_addr*)&client_ip) << std::endl;
             if (packet.seq_num == 1) {
+
                 client_packet_table.insert({client_ip, {packet.seq_num, false, nullptr}});
-                return VALID;
+                return {VALID, &client_packet_table[client_ip]};
             } else {
-                return OUT_OF_ORDER;
+                return {OUT_OF_ORDER, nullptr}; // should never happen
             }
         }
 
 
-       return NO_CLUE;
+       return {NO_CLUE, nullptr};
     }
 
-    void print_status(Packet_status status) {
+    void print_status(Indexing_result result) {
         std::cout << GREEN << "Packet status: ";
-                switch(status){
+        switch(result.status){
                     case VALID:
                         std::cout << "VALID" << RESET << std::endl;
                         break;
