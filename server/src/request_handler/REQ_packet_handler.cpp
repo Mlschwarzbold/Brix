@@ -161,7 +161,7 @@ void *process_req_packet(void *arg) {
         break;
 
     case NO_CLUE:
-        reply = ACK_Packet(client_record.last_request, "UNKOWN_STATUS",
+        reply = ACK_Packet(client_record.last_request, "SERVER_ERRROR",
                            client_record.balance, sender_ip, packet.receiver_ip,
                            packet.transfer_amount);
         std::cerr << RED << "[REQUEST PROCESSOR] INVALID STATUS!" << std::endl;

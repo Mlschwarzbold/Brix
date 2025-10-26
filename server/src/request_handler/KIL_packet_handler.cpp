@@ -42,7 +42,8 @@ void *process_kill_packet(void *arg) {
         break;
 
     case db_manager::db_record_response::NOT_FOUND:
-        reply = ACK_Packet(packet.seq_num, "NOT_FOUND", 0, sender_ip, 0, 0)
+        reply = ACK_Packet(packet.seq_num, "SENDER_NOT_REGISTERED", 0,
+                           sender_ip, 0, 0)
                     .to_string();
 #if _DEBUG
         std::cout << MAGENTA
