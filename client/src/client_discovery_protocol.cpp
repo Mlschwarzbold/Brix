@@ -56,15 +56,14 @@ int client_discovery_protocol(char *return_server_ip, int *return_server_port,
         // send discovery message
         sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM,
                (const struct sockaddr *)&servaddr, sizeof(servaddr));
+#if _DEBUG
         if (num_retries == 0)
             std::cout << "Sent Discovery Broadcast " << std::endl;
+#endif
 
         // espera receber mensagem
         n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL,
                      (struct sockaddr *)&servaddr, &len);
-        // std::cout<<" lenght: " <<n<<std::endl;
-
-        // std::cout << buffer << std::endl;
 
         if (n < 0) {
             std::cerr << "Timeout or error receiving response, retrying... ("
@@ -137,9 +136,6 @@ int extract_ip_and_port_from_response(char *response, char *return_ip,
     if (strtok_ptr == NULL || strcmp(strtok_ptr, "END") != 0) {
         return -4; // INVALID_FORMAT
     }
-
-    // std::cout << "Extracted IP: " << ip_str << std::endl;
-    // std::cout << "Extracted Port: " << port_str << std::endl;
 
     // validate IP address
     // this is done by trying to insert it into sockaddr_in struct

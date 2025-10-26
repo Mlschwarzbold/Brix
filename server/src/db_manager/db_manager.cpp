@@ -31,8 +31,10 @@ DbManager::DbManager() {
 }
 
 DbManager::~DbManager() {
+#if _DEBUG
     std::cout << RED << "[DATABASE] Destroying database instance!" << RESET
               << std::endl;
+#endif
     pthread_mutex_destroy(&database_access_lock);
     pthread_mutex_destroy(&database_metadata_lock);
 
@@ -130,7 +132,6 @@ const db_record_response
 DbManager::make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
                             unsigned long int transfer_amount) {
 
-    // std::cout << "Foobar" << std::endl;
     // Make sure there is no one reading or writing on our clients
     // Get locks
 
@@ -140,6 +141,13 @@ DbManager::make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
     } catch (std::out_of_range const &) {
         unlock_database();
         return {false, {}, db_record_response::UNKNOWN_SENDER};
+    }
+
+    if (transfer_amount == 0) {
+        unlock_client(sender_ip);
+        unlock_database();
+        return {true, database_records.at(sender_ip),
+                db_record_response::BALANCE_CHECK};
     }
 
     if (sender_ip == receiver_ip) {

@@ -33,6 +33,7 @@ struct db_record_response {
         NOT_FOUND,
         UNKNOWN_SENDER,
         UNKNOWN_RECEIVER,
+        BALANCE_CHECK
     } status_code;
 };
 
@@ -81,7 +82,9 @@ class DbManager {
     //     in the database.
     //   # `UNKNOWN_RECEIVER` - The ip provided for the receiver is not
     //   registered in the database.
-    //   # `DUPLICATE_IP` - Sender and receiver IPs are the same
+    //   # `DUPLICATE_IP` - Sender and receiver IPs are the
+    //   # `BALANCE_CHECK` - Not a transfer, just a balance check (transfer
+    //   amount is 0)
     const db_record_response
     make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
                      unsigned long int transfer_amount);

@@ -4,11 +4,14 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <queue>
-#include <random>
-#include <sstream>
 #include <string>
 
 namespace client_request_transfer {
+
+typedef struct {
+    in_addr_t dest_ip;
+    int transfer_amount;
+} Request;
 
 class RequestDispatcher {
   public:
@@ -28,14 +31,19 @@ class RequestDispatcher {
 
     static void *process_requests(void *arg);
 
-    static void dispatch_request(std::string request);
+    static void dispatch_request(Request request);
 
-    static std::queue<std::string> request_queue;
+    static bool handle_response(ACK_Packet reponse);
+
+    static bool is_alive;
     static int sockfd;
     static struct sockaddr_in servaddr;
+
     static pthread_mutex_t request_queue_lock;
-    static bool is_alive;
     static pthread_t request_dispatcher_thread;
+
+    static std::queue<Request> request_queue;
+    static int current_request;
 };
 
 } // namespace client_request_transfer

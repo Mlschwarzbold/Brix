@@ -1,19 +1,15 @@
 BUILD_DIR="./build"
 DEFAULT_PORT=4000
+BUILD_TYPE="Debug" # "Debug" or "Release"
 
+    
 set -e
 
 build() {
-    build_type="Debug"
-    if [ "$1" == "release" ]; then
-        echo "- Building Release"
-        build_type="Release"
-
-        else echo "- Building Debug"
-    fi
+    echo "- Building $BUILD_TYPE"
 
     mkdir -p "$BUILD_DIR"
-    cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$build_type" 
+    cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$BUILD_TYPE" 
     cd "$BUILD_DIR" || exit 1
     make -j 5
     cd ..

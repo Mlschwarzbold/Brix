@@ -39,6 +39,11 @@ ACK_Packet process_db_transaction(in_addr_t sender_ip, REQ_Packet packet,
                           result.record.balance, sender_ip, packet.receiver_ip,
                           packet.transfer_amount);
 
+    case db_manager::db_record_response::BALANCE_CHECK:
+        return ACK_Packet(result.record.last_request, "BALANCE_CHECK",
+                          result.record.balance, sender_ip, packet.receiver_ip,
+                          packet.transfer_amount);
+
     case db_manager::db_record_response::INSUFFICIENT_BALANCE:
         return ACK_Packet(result.record.last_request, "INSUFFICIENT_BALANCE",
                           result.record.balance, sender_ip, packet.receiver_ip,
@@ -128,14 +133,11 @@ void *process_req_packet(void *arg) {
 
     auto client_record =
         db->get_client_info(sender_addr.sin_addr.s_addr).record;
-    ;
 
     in_addr_t sender_ip = sender_addr.sin_addr.s_addr;
     Packet_status status = check_packet_status(packet, client_record);
 
     ACK_Packet reply;
-    // std::cout << "Receiver: " << addr_to_string(packet.receiver_ip)
-    //           << std::endl;
 
     switch (status) {
     case VALID:

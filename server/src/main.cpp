@@ -11,6 +11,9 @@
 void print_startup_message(db_manager::db_metadata db_metadata);
 
 int main(int argc, char *argv[]) {
+#if _DEBUG
+    std::cout << BOLD << YELLOW << "Running debug build!" << RESET << std::endl;
+#endif
     // Validação dos argumentos da linha de comando
     if (argc < 2) {
         std::cerr << "Uso: ./servidor <porta>" << std::endl;

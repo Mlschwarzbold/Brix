@@ -1,4 +1,5 @@
 #include "client_discovery_protocol.h"
+#include "colors.h"
 #include "data_transfer/client_request_transfer.h"
 #include "date_time_utils.h"
 #include <arpa/inet.h>
@@ -8,6 +9,9 @@
 #include <string>
 
 int main(int argc, char *argv[]) {
+#if _DEBUG
+    std::cout << BOLD << YELLOW << "Running debug build!" << RESET << std::endl;
+#endif
     // Validação dos argumentos da linha de comando
     if (argc < 2) {
         std::cerr << "Uso: ./cliente <porta>" << std::endl;
@@ -32,8 +36,10 @@ int main(int argc, char *argv[]) {
     if (client_discovery_protocol(return_server_ip, &return_server_port,
                                   (char *)"255.255.255.255", port, 5,
                                   500) == 0) {
-        std::cout << "Server found at IP: " << return_server_ip
-                  << " Port: " << return_server_port << std::endl;
+#if _DEBUG
+        std::cout << YELLOW << "Server found at IP: " << return_server_ip
+                  << " Port: " << return_server_port << RESET << std::endl;
+#endif
     } else {
         std::cerr << "Server not found" << std::endl;
         return 1;

@@ -17,8 +17,10 @@ namespace multiplexer {
 void *start_multiplexer_server(void *arg) {
     int port = (*(int *)arg) + 1;
 
+#if _DEBUG
     std::cout << BLUE << "Starting Packet Multiplexer on port " << port << RESET
               << std::endl;
+#endif
     (void)packet_multiplexer(port);
     return 0;
 }
@@ -49,15 +51,27 @@ int packet_multiplexer(int port) {
         n = recvfrom(sockfd, (char *)buffer, MAX_PACKET_SIZE, MSG_WAITALL,
                      (struct sockaddr *)&cliaddr, &len);
         buffer[n] = '\0';
+
         // convert to string_packet
         char buffer_copy[MAX_PACKET_SIZE + 1];
+
+        // Double buffer to make sure we don't run into memory overwriting
+        // problems
         mempcpy(buffer_copy, buffer, sizeof(buffer_copy));
         String_Packet str_packet(buffer_copy);
 
-        Packet_type packet_type = str_packet.type();
-
         struct sockaddr_in cli_adrr_copy;
         std::memcpy(&cli_adrr_copy, &cliaddr, sizeof(struct sockaddr_in));
+
+#if _DEBUG
+        std::cout << YELLOW
+                  << "Packet from: " << inet_ntoa(cli_adrr_copy.sin_addr) << ":"
+                  << ntohs(cli_adrr_copy.sin_port) << RESET << std::endl;
+        std::cout << YELLOW << "Packet content: " << buffer_copy << RESET
+                  << std::endl;
+#endif
+
+        Packet_type packet_type = str_packet.type();
 
         // If it is a REQ packet, try to parse it
         if (packet_type == REQ) {
@@ -71,8 +85,7 @@ int packet_multiplexer(int port) {
                         sizeof(requests::process_req_packet_params));
 
                 params->reply_sockfd = sockfd;
-                std::memcpy((void *)&params->packet, &req_packet,
-                            sizeof(struct REQ_Packet));
+                params->packet = req_packet;
                 std::memcpy((void *)&params->sender_addr, &cli_adrr_copy,
                             sizeof(struct sockaddr_in));
 

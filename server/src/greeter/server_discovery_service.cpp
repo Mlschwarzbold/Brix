@@ -27,8 +27,10 @@ void server_discovery_service(int discovery_service_port,
     char send_buffer[MAXLINE + 1];
     struct sockaddr_in servaddr, cliaddr;
 
+#if _DEBUG
     std::cout << GREEN << "Starting Discovery Service on port "
               << discovery_service_port << RESET << std::endl;
+#endif
 
     auto db_instance = db_manager::DbManager::get_instance();
 
