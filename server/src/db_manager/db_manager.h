@@ -7,8 +7,8 @@
 #include <unordered_map>
 namespace db_manager {
 
-const unsigned long int STARTING_BALANCE = 200;
-const unsigned int STARTING_REQUEST = 1;
+const unsigned long int STARTING_BALANCE = 100000;
+const unsigned int STARTING_REQUEST = 0;
 
 // This is how a client is represented inside the database. They can be ordered
 // or compared using the `client_ip` field.
@@ -23,9 +23,9 @@ struct client_record {
 // - A record field, poiting towards a client record inside the database.
 // - A description field, providing additional information regarding the result
 //   of the request (mostly related to different types of error).
-struct db_response {
+struct db_record_response {
     bool success;
-    client_record *record;
+    client_record record;
     enum Description {
         SUCCESS,
         DUPLICATE_IP,
@@ -36,10 +36,16 @@ struct db_response {
     } status_code;
 };
 
+struct db_metadata {
+    int num_transactions;
+    int total_transferred;
+    int total_balance;
+};
+
 class DbManager {
   public:
-    DbManager();
     ~DbManager();
+    static DbManager *get_instance();
 
     // Registers a new entry for the client in the database records.
     // - If the client already exists, returns false in success and the
@@ -49,7 +55,7 @@ class DbManager {
     // - Possible failures:
     //   # `DUPLICATE_IP` - The provided ip is already registered in the
     //   database.
-    const db_response register_client(in_addr_t client_ip);
+    const db_record_response register_client(in_addr_t client_ip);
 
     // Searches for a given client inside the database.
     // - If found, returns true in success and an iterator to the record inside
@@ -58,7 +64,7 @@ class DbManager {
     // invalid.
     // - Possible failures:
     //   # `NOT_FOUND` - The provided ip was not registered inside the database.
-    const db_response get_client_info(in_addr_t client_ip);
+    const db_record_response get_client_info(in_addr_t client_ip);
 
     // Registers a transaction between two clients.
     // Transfers `amount` from the sender's balance to the receiver's balance,
@@ -76,24 +82,37 @@ class DbManager {
     //   # `UNKNOWN_RECEIVER` - The ip provided for the receiver is not
     //   registered
     //     in the database.
-    const db_response make_transaction(in_addr_t sender_ip,
-                                       in_addr_t receiver_ip,
-                                       unsigned long int transfer_amount);
+    const db_record_response
+    make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
+                     unsigned long int transfer_amount);
 
     // Removes a client's entry from the database records. The value of `record`
     // will always be null, independent of success or failure.
     // - Possible failures:
     //   # `NOT_FOUND` - The client was not found inside the database records.
     //     Either it was already removed or it was never registered.
-    const db_response remove_client(in_addr_t client_ip);
+    const db_record_response remove_client(in_addr_t client_ip);
+
+    // Retrieves data about the database:
+    // - Number of transactions
+    // - Total amount of money transfered
+    // - Total balance in the database
+    const db_metadata get_db_metadata();
 
   private:
+    DbManager();
+
     std::unordered_map<in_addr_t, pthread_mutex_t *> client_locks;
     pthread_mutex_t database_access_lock;
 
     // The records are kept in an unordere map (indexed by their client_ip,
     // using a hash table  for efficient storage
     std::unordered_map<in_addr_t, client_record> database_records;
+
+    int total_transferred;
+    int num_transactions;
+    int total_balance;
+
     void print_record(client_record client);
 
     // Helper functions to give more semantic to database locking operations

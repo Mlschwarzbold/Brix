@@ -1,15 +1,15 @@
 #include "socket_utils.h"
 #include <arpa/inet.h>
+#include <iostream>
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <iostream>
 
 // Create a UDP socket and return its file descriptor
-int create_udp_socket(){
+int create_udp_socket() {
     int sockfd;
     // Creating socket file descriptor
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -19,9 +19,8 @@ int create_udp_socket(){
     return sockfd;
 }
 
-
 // Enable broadcasting on the given socket
-int enable_broadcast(int sockfd){
+int enable_broadcast(int sockfd) {
     int broadcastEnable = 1;
     if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastEnable,
                    sizeof(broadcastEnable)) < 0) {
@@ -34,7 +33,7 @@ int enable_broadcast(int sockfd){
 
 // Set a timeout on the given socket in milliseconds
 // if the timeout is reached, recvfrom will return -1
-int set_timeout(int sockfd, int timeout_ms){
+int set_timeout(int sockfd, int timeout_ms) {
     // weird struct takes seconds and microseconds.
     // microseconds cant be greater than 1 million
     // so we gotta do weird math to convert milliseconds to both seconds and
@@ -50,7 +49,7 @@ int set_timeout(int sockfd, int timeout_ms){
     return 0;
 }
 
-struct sockaddr_in create_sockaddr(const char* ip, int port){
+struct sockaddr_in create_sockaddr(const char *ip, int port) {
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET; // IPv4
@@ -59,12 +58,23 @@ struct sockaddr_in create_sockaddr(const char* ip, int port){
     return addr;
 }
 
-int bind_to_sockaddr(int sockfd, struct sockaddr_in* addr){
-  if (bind(sockfd,(const struct sockaddr *)addr, sizeof(*addr)) <
-        0) {
+int bind_to_sockaddr(int sockfd, struct sockaddr_in *addr) {
+    if (bind(sockfd, (const struct sockaddr *)addr, sizeof(*addr)) < 0) {
         std::cerr << "bind failed" << std::endl;
         close(sockfd);
         return -1;
     }
     return 0;
+}
+
+std::string addr_to_string(in_addr_t addr) {
+    char buffer[INET_ADDRSTRLEN];
+    struct in_addr in_addr;
+    in_addr.s_addr = addr;
+
+    if (inet_ntop(AF_INET, &in_addr, buffer, sizeof(buffer)) == nullptr) {
+        return "";
+    }
+
+    return std::string(buffer);
 }

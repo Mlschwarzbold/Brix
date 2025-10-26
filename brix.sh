@@ -13,9 +13,9 @@ build() {
     fi
 
     mkdir -p "$BUILD_DIR"
-    cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$build_type"
+    cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$build_type" 
     cd "$BUILD_DIR" || exit 1
-    make
+    make -j 5
     cd ..
 }
 

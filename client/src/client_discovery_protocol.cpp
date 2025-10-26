@@ -1,4 +1,5 @@
 #include "client_discovery_protocol.h"
+#include "data_transfer/socket_utils.h"
 #include <arpa/inet.h>
 #include <bits/stdc++.h>
 #include <netinet/in.h>
@@ -7,24 +8,23 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "data_transfer/socket_utils.h"
 
-#define MAXLINE 1024
+const int MAXLINE = 2048;
 
 // Client Discovery Protocol
 // This function initiates the discovery protocol, sending a broadcasted UDP
 // datagram with the DIS message type then it waits for a response from the
-// server or a timeout if the timer runs out / message is invalid, try it again
-// if a valid response is received, extract the server IP and port and return
-// them if the maximum number of retries is reached, return an error return 0 on
-// success, -1 on error
+// server or a timeout if the timer runs out / message is invalid, try it
+// again if a valid response is received, extract the server IP and port and
+// return them if the maximum number of retries is reached, return an error
+// return 0 on success, -1 on error
 
 int client_discovery_protocol(char *return_server_ip, int *return_server_port,
                               char *broadcast_ip, int broadcast_port,
                               int max_retries, int initial_timeout_ms) {
     int sockfd;
-    char buffer[MAXLINE];
-    char send_buffer[MAXLINE];
+    char buffer[MAXLINE + 1];
+    char send_buffer[MAXLINE + 1];
     const char *discovery_message = "DIS";
     struct sockaddr_in servaddr;
     int address_is_valid;
@@ -42,7 +42,7 @@ int client_discovery_protocol(char *return_server_ip, int *return_server_port,
 
     // Filling server information
     servaddr = create_sockaddr(broadcast_ip, broadcast_port);
-                                
+
     int n;
     socklen_t len;
     std::string msg;
@@ -64,7 +64,7 @@ int client_discovery_protocol(char *return_server_ip, int *return_server_port,
                      (struct sockaddr *)&servaddr, &len);
         // std::cout<<" lenght: " <<n<<std::endl;
 
-        //std::cout << buffer << std::endl;
+        // std::cout << buffer << std::endl;
 
         if (n < 0) {
             std::cerr << "Timeout or error receiving response, retrying... ("

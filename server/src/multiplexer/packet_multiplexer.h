@@ -2,7 +2,7 @@
 #define PACKET_MULTIPLEXER_H
 namespace multiplexer {
 
-int start_multiplexer_server(int port);
+void *start_multiplexer_server(void *arg);
 
 int packet_multiplexer(int port);
 
