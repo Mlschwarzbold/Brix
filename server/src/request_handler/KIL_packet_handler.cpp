@@ -1,6 +1,8 @@
 #include "KIL_packet_handler.h"
 #include "colors.h"
+#include "data_transfer/socket_utils.h"
 #include "db_manager/db_manager.h"
+#include "iostream"
 
 namespace requests {
 
@@ -14,18 +16,52 @@ void *process_kill_packet(void *arg) {
 
     in_addr_t sender_ip = sender_addr.sin_addr.s_addr;
 
+#if _DEBUG
+    std::cout << MAGENTA << "[KILL PROCESSOR]: Removing client "
+              << addr_to_string(sender_ip) << " from database..." << RESET
+              << std::endl;
+#endif
+
     auto db = db_manager::DbManager::get_instance();
     auto result = db->remove_client(sender_ip);
 
     std::string reply;
 
-    if (result.success) {
+    switch (result.status_code) {
+
+    case db_manager::db_record_response::SUCCESS:
         reply = ACK_Packet(packet.seq_num, "KILL", result.record.balance,
-                           sender_ip, 0, -result.record.balance)
+                           sender_ip, 0, result.record.balance)
                     .to_string();
-    } else {
-        reply =
-            ACK_Packet(packet.seq_num, "KILL", 0, sender_ip, 0, 0).to_string();
+
+#if _DEBUG
+        std::cout << MAGENTA << "[KILL PROCESSOR]: Succesfully removed client "
+                  << addr_to_string(sender_ip) << " from database." << RESET
+                  << std::endl;
+#endif
+        break;
+
+    case db_manager::db_record_response::NOT_FOUND:
+        reply = ACK_Packet(packet.seq_num, "NOT_FOUND", 0, sender_ip, 0, 0)
+                    .to_string();
+#if _DEBUG
+        std::cout << MAGENTA
+                  << "[KILL PROCESSOR]: Client not found on database: "
+                  << addr_to_string(sender_ip) << "!" << RESET << std::endl;
+#endif
+        break;
+
+    case db_manager::db_record_response::DUPLICATE_IP:
+    case db_manager::db_record_response::INSUFFICIENT_BALANCE:
+    case db_manager::db_record_response::UNKNOWN_SENDER:
+    case db_manager::db_record_response::UNKNOWN_RECEIVER:
+    case db_manager::db_record_response::BALANCE_CHECK:
+        reply = ACK_Packet(packet.seq_num, "SERVER_ERROR", 0, sender_ip, 0, 0)
+                    .to_string();
+#if _DEBUG
+        std::cout << MAGENTA
+                  << "[KILL PROCESSOR]: Got unexpected result from database!";
+#endif
     }
 
     sendto(reply_sockfd, reply.data(), reply.length(), MSG_CONFIRM,

@@ -246,9 +246,9 @@ const db_record_response DbManager::remove_client(in_addr_t client_ip) {
     // Finished getting the lock
     unlock_database();
 
-    int client_balance;
+    client_record client_record;
     try {
-        client_balance = database_records.at(client_ip).balance;
+        client_record = database_records.at(client_ip);
     } catch (std::out_of_range const &) {
         unlock_client(client_ip);
         std::cerr << "[DATABASE ERROR]: Client search failed after mutex "
@@ -256,6 +256,8 @@ const db_record_response DbManager::remove_client(in_addr_t client_ip) {
                   << std::endl;
         return {false, {}, db_record_response::NOT_FOUND};
     }
+
+    struct client_record client_copy = client_record;
 
     // Remove the client from the database
     auto removed_client_amout = database_records.erase(client_ip);
@@ -283,10 +285,10 @@ const db_record_response DbManager::remove_client(in_addr_t client_ip) {
 
     lock_database();
     // Update global balance
-    total_balance -= client_balance;
+    total_balance -= client_copy.balance;
     unlock_database();
 
-    return {true, {}, db_record_response::SUCCESS
+    return {true, client_copy, db_record_response::SUCCESS
 
     };
 }

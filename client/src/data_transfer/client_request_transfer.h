@@ -8,9 +8,12 @@
 
 namespace client_request_transfer {
 
-typedef struct {
+typedef struct request_t {
     in_addr_t dest_ip;
     unsigned long transfer_amount;
+    enum RequestType { REQ, KILL, ERROR } type;
+
+    static request_t from_string(std::string input);
 } Request;
 
 class RequestDispatcher {
@@ -21,7 +24,7 @@ class RequestDispatcher {
 
     ~RequestDispatcher();
 
-    void queue_request(std::string request);
+    void queue_request(Request request);
 
     void queue_test(std::string test_string);
 

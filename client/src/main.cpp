@@ -66,9 +66,11 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        request_processor->queue_request(input);
+        request_processor->queue_request(
+            client_request_transfer::Request::from_string(input));
     }
-    request_processor->queue_request("KIL END");
+    request_processor->queue_request(
+        {0, 0, client_request_transfer::request_t::KILL});
 
     delete request_processor;
     return 0;

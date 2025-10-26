@@ -55,36 +55,13 @@ RequestDispatcher::~RequestDispatcher() {
     pthread_join(request_dispatcher_thread, NULL);
 }
 
-void RequestDispatcher::queue_request(std::string input) {
-    // Transform user input into dispatchable request
-    std::istringstream iss(input);
-    std::string token;
-    std::vector<std::string> tokens;
-
-    while (iss >> token) {
-        tokens.push_back(token);
-    }
-
-    if (tokens.size() != 2) {
-        std::cout << RED << "Bad input!\n"
-                  << BOLD << "Usage: <IP> <AMOUNT>" << RESET << std::endl;
+void RequestDispatcher::queue_request(Request request) {
+    if (request.type == request_t::ERROR)
         return;
-    }
 
-    try {
-        in_addr_t dest_ip = inet_addr(tokens[0].c_str());
-        unsigned long transfer_amount = std::stoul(tokens[1]);
-
-        Request request = {dest_ip, transfer_amount};
-
-        pthread_mutex_lock(&request_queue_lock);
-        request_queue.push(request);
-        pthread_mutex_unlock(&request_queue_lock);
-
-    } catch (std::invalid_argument &) {
-        std::cout << RED << "Bad input!\n"
-                  << BOLD << "Usage: <IP> <AMOUNT>" << RESET << std::endl;
-    }
+    pthread_mutex_lock(&request_queue_lock);
+    request_queue.push(request);
+    pthread_mutex_unlock(&request_queue_lock);
 };
 
 void RequestDispatcher::dispatch_request(Request request) {
@@ -93,21 +70,24 @@ void RequestDispatcher::dispatch_request(Request request) {
     std::string msg;
     char buffer[MAXLINE + 1];
 
-#if _DEBUG
-    std::cout << BLUE << "[REQUEST DISPATCHER] Dispatching: "
-              << REQ_Packet(current_request, request.dest_ip,
-                            request.transfer_amount)
-                     .to_string()
-              << RESET << std::endl;
-#endif
-
     while (retries < MAX_RETRIES) {
         retries++;
 
-        std::string serialized_request =
-            REQ_Packet(current_request, request.dest_ip,
-                       request.transfer_amount)
-                .to_string();
+        std::string serialized_request;
+
+        if (request.type == request_t::REQ) {
+            serialized_request = REQ_Packet(current_request, request.dest_ip,
+                                            request.transfer_amount)
+                                     .to_string();
+
+        } else if (request.type == request_t::KILL) {
+            serialized_request = "KIL END";
+        }
+#if _DEBUG
+        std::cout << BLUE
+                  << "[REQUEST DISPATCHER] Dispatching: " << serialized_request
+                  << RESET << std::endl;
+#endif
 
         sendto(sockfd, serialized_request.data(), serialized_request.length(),
                0, (const struct sockaddr *)&servaddr, sizeof(servaddr));
@@ -157,8 +137,8 @@ void RequestDispatcher::dispatch_request(Request request) {
     }
 
 #if _DEBUG
-    std::cerr << "[REQUEST DISPATCHER] Too many retries, giving up."
-              << std::endl;
+    std::cerr << RED << "[REQUEST DISPATCHER] Too many retries, giving up."
+              << RESET << std::endl;
 #endif
 }
 
@@ -207,7 +187,7 @@ void RequestDispatcher::queue_test(std::string test_string) {
     std::string request = target_ip + " 1";
 
     for (int i = 1; i <= 100000; i++) {
-        queue_request(request);
+        queue_request(Request::from_string(request));
     }
 }
 
@@ -242,6 +222,19 @@ bool RequestDispatcher::handle_response(ACK_Packet response) {
         return true;
     }
 
+    if (response.result == "KILL") {
+        // 2024-10-01 18:37:01 server 10.1.1.20 id_req 1
+        // dest 10.1.1.3 value 10 new balance
+        std::cout << CYAN << getCurrentDateString() << " "
+                  << getCurrentTimeString();
+        std::cout << " server " << addr_to_string(servaddr.sin_addr.s_addr);
+        std::cout << " id_req " << response.seq_num;
+        std::cout << " removed_balance " << response.new_balance;
+        std::cout << " " << GREEN << response.result;
+        std::cout << RESET << std::endl;
+        return true;
+    }
+
 #if _DEBUG
     std::cout << YELLOW << getCurrentDateString() << " "
               << getCurrentTimeString();
@@ -256,4 +249,32 @@ bool RequestDispatcher::handle_response(ACK_Packet response) {
 
     return false;
 }
+request_t request_t::from_string(std::string input) {
+    // Transform user input into dispatchable request
+    std::istringstream iss(input);
+    std::string token;
+    std::vector<std::string> tokens;
+
+    while (iss >> token) {
+        tokens.push_back(token);
+    }
+
+    if (tokens.size() != 2) {
+        std::cout << RED << "Bad input!\n"
+                  << BOLD << "Usage: <IP> <AMOUNT>" << RESET << std::endl;
+        return {0, 0, ERROR};
+    }
+
+    try {
+        in_addr_t dest_ip = inet_addr(tokens[0].c_str());
+        unsigned long transfer_amount = std::stoul(tokens[1]);
+
+        return {dest_ip, transfer_amount, REQ};
+
+    } catch (std::invalid_argument &) {
+        std::cout << RED << "Bad input!\n"
+                  << BOLD << "Usage: <IP> <AMOUNT>" << RESET << std::endl;
+        return {0, 0, ERROR};
+    }
+};
 } // namespace client_request_transfer
