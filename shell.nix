@@ -5,8 +5,6 @@
       gcc
       clang-tools
       cmake
-      codespell
-      cppcheck
       lldb
       docker
       tmux

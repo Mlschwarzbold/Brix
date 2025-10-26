@@ -17,7 +17,6 @@ build() {
 
 server() {
     port="${1:-$DEFAULT_PORT}"
-    shift
     build "$@"
     # clear
     print_ip
@@ -27,7 +26,6 @@ server() {
 
 client() {
     port="${1:-$DEFAULT_PORT}"
-    shift
     build "$@"
     clear
     print_ip
@@ -58,7 +56,7 @@ build_container() {
 
 network() {
     build_type="${1:-$DEFAULT_BUILD_TYPE}"
-    
+
     # Create a custom Docker network (bridge)
     docker network inspect brix-net >/dev/null 2>&1 || \
     docker network create brix-net
