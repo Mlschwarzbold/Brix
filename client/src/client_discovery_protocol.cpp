@@ -25,7 +25,7 @@ int client_discovery_protocol(char *return_server_ip, int *return_server_port,
     int sockfd;
     char buffer[MAXLINE + 1];
     char send_buffer[MAXLINE + 1];
-    const char *discovery_message = "DIS";
+    const char *discovery_message = "DIS END";
     struct sockaddr_in servaddr;
     int address_is_valid;
 
