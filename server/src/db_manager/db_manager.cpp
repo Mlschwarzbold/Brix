@@ -18,7 +18,8 @@ DbManager::DbManager() {
 
     /// Initialize global acessor, used to indicate when a thead is in the
     /// process of acquiring locks
-    pthread_mutex_init(&database_access_lock, {});
+    pthread_mutex_init(&database_access_lock, NULL);
+    pthread_mutex_init(&database_metadata_lock, NULL);
 
     // Client locks are used to avoid two threads trying to read or modify info
     // about two clients at the same time.
@@ -33,6 +34,7 @@ DbManager::~DbManager() {
     std::cout << RED << "[DATABASE] Destroying database instance!" << RESET
               << std::endl;
     pthread_mutex_destroy(&database_access_lock);
+    pthread_mutex_destroy(&database_metadata_lock);
 
     for (auto client_reader : client_locks) {
         pthread_mutex_destroy(client_reader.second);
@@ -66,7 +68,7 @@ const db_record_response DbManager::register_client(in_addr_t client_ip) {
 
     // Create a mutex for the new client
     pthread_mutex_t *client_mutex = (pthread_mutex_t *)malloc(sizeof(sem_t));
-    pthread_mutex_init(client_mutex, {});
+    pthread_mutex_init(client_mutex, NULL);
     // Lock the database since we are going to access the client locks
     lock_database();
 
@@ -127,14 +129,24 @@ const db_record_response DbManager::register_client(in_addr_t client_ip) {
 const db_record_response
 DbManager::make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
                             unsigned long int transfer_amount) {
+
+    // std::cout << "Foobar" << std::endl;
     // Make sure there is no one reading or writing on our clients
     // Get locks
+
     lock_database();
     try {
         lock_client(sender_ip);
     } catch (std::out_of_range const &) {
         unlock_database();
         return {false, {}, db_record_response::UNKNOWN_SENDER};
+    }
+
+    if (sender_ip == receiver_ip) {
+        unlock_client(sender_ip);
+        unlock_database();
+        return {false, database_records.at(sender_ip),
+                db_record_response::DUPLICATE_IP};
     }
 
     try {
@@ -200,14 +212,14 @@ DbManager::make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
     sender->balance -= transfer_amount;
     receiver->balance += transfer_amount;
 
-    // Update global records
-    lock_database();
-    total_transferred += transfer_amount;
-    num_transactions++;
-    unlock_database();
-
     unlock_client(sender_ip);
     unlock_client(receiver_ip);
+
+    // Update global records
+    lock_metadata();
+    total_transferred += transfer_amount;
+    num_transactions++;
+    unlock_metadata();
 
     return {true, *sender, db_record_response::SUCCESS};
 }
@@ -289,6 +301,12 @@ void DbManager::lock_database() { pthread_mutex_lock(&database_access_lock); }
 
 void DbManager::unlock_database() {
     pthread_mutex_unlock(&database_access_lock);
+}
+
+void DbManager::lock_metadata() { pthread_mutex_lock(&database_metadata_lock); }
+
+void DbManager::unlock_metadata() {
+    pthread_mutex_unlock(&database_metadata_lock);
 }
 
 void DbManager::lock_client(in_addr_t client_ip) {

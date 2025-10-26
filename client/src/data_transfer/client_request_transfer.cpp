@@ -96,7 +96,6 @@ void RequestDispatcher::dispatch_request(std::string request) {
                 } else {
                     std::cout << RED;
                 }
-
                 std::cout << parsed_response.result;
                 std::cout << RESET << std::endl;
             } catch (std::exception const &) {

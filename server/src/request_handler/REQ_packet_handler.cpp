@@ -35,28 +35,26 @@ ACK_Packet process_db_transaction(in_addr_t sender_ip, REQ_Packet packet,
     switch (result.status_code) {
 
     case db_manager::db_record_response::SUCCESS:
-        //
-        return ACK_Packet(packet.seq_num, "SUCCESS", result.record.balance,
-                          sender_ip, packet.receiver_ip,
-                          packet.transfer_amount);
-
-        break;
-
-    case db_manager::db_record_response::INSUFFICIENT_BALANCE:
-        return ACK_Packet(packet.seq_num, "INSUFFICIENT_BALANCE",
+        return ACK_Packet(result.record.last_request, "SUCCESS",
                           result.record.balance, sender_ip, packet.receiver_ip,
                           packet.transfer_amount);
 
-        break;
+    case db_manager::db_record_response::INSUFFICIENT_BALANCE:
+        return ACK_Packet(result.record.last_request, "INSUFFICIENT_BALANCE",
+                          result.record.balance, sender_ip, packet.receiver_ip,
+                          packet.transfer_amount);
 
     case db_manager::db_record_response::UNKNOWN_RECEIVER:
         // Just reply with the client's balance and inform failure of
         // operation
-        return ACK_Packet(packet.seq_num, "RECEIVER_NOT_REGISTERED",
+        return ACK_Packet(result.record.last_request, "RECEIVER_NOT_REGISTERED",
                           result.record.balance, sender_ip, packet.receiver_ip,
                           packet.transfer_amount);
 
-        break;
+    case db_manager::db_record_response::DUPLICATE_IP:
+        return ACK_Packet(result.record.last_request, "BAD_REQUEST",
+                          result.record.balance, sender_ip, packet.receiver_ip,
+                          packet.transfer_amount);
 
     case db_manager::db_record_response::UNKNOWN_SENDER:
         std::cerr << RED
@@ -64,22 +62,17 @@ ACK_Packet process_db_transaction(in_addr_t sender_ip, REQ_Packet packet,
                      "registered in database! "
                   << RESET << std::endl;
 
-        return ACK_Packet(packet.seq_num, "SENDER_NOT_REGISTERED", 0, sender_ip,
+        return ACK_Packet(0, "SENDER_NOT_REGISTERED", 0, sender_ip,
                           packet.receiver_ip, packet.transfer_amount);
 
-        break;
-
     case db_manager::db_record_response::NOT_FOUND:
-    case db_manager::db_record_response::DUPLICATE_IP:
     default:
         std::cerr << RED
                   << "[REQUEST PROCESSOR]: Invalid status code response "
                      "from database: "
                   << result.status_code << RESET << std::endl;
-        return ACK_Packet(packet.seq_num, "UKNW", 0, sender_ip,
-                          packet.receiver_ip, packet.transfer_amount);
-
-        break;
+        return ACK_Packet(0, "UKNW", 0, sender_ip, packet.receiver_ip,
+                          packet.transfer_amount);
     }
 }
 
@@ -133,13 +126,16 @@ void *process_req_packet(void *arg) {
     int reply_sockfd = params.reply_sockfd;
     db_manager::DbManager *db = db_manager::DbManager::get_instance();
 
-    db_manager::db_record_response client_record =
-        db->get_client_info(sender_addr.sin_addr.s_addr);
+    auto client_record =
+        db->get_client_info(sender_addr.sin_addr.s_addr).record;
+    ;
 
     in_addr_t sender_ip = sender_addr.sin_addr.s_addr;
-    Packet_status status = check_packet_status(packet, client_record.record);
+    Packet_status status = check_packet_status(packet, client_record);
 
     ACK_Packet reply;
+    // std::cout << "Receiver: " << addr_to_string(packet.receiver_ip)
+    //           << std::endl;
 
     switch (status) {
     case VALID:
@@ -148,21 +144,24 @@ void *process_req_packet(void *arg) {
         break;
 
     case DUPLICATE:
-        reply = ACK_Packet(packet.seq_num, "DUPLICATE", 0, sender_ip,
-                           packet.receiver_ip, packet.transfer_amount);
+        reply = ACK_Packet(client_record.last_request, "DUPLICATE",
+                           client_record.balance, sender_ip, packet.receiver_ip,
+                           packet.transfer_amount);
         print_request_info(sender_ip, packet, true, false, db);
         break;
 
     case OUT_OF_ORDER:
-        reply = ACK_Packet(packet.seq_num, "OUT_OF_ORDER", 0, sender_ip,
-                           packet.receiver_ip, packet.transfer_amount);
+        reply = ACK_Packet(client_record.last_request, "OUT_OF_ORDER",
+                           client_record.balance, sender_ip, packet.receiver_ip,
+                           packet.transfer_amount);
         print_request_info(sender_ip, packet, false, true, db);
 
         break;
 
     case NO_CLUE:
-        reply = ACK_Packet(packet.seq_num, "UNKOWN_STATUS", 0, sender_ip,
-                           packet.receiver_ip, packet.transfer_amount);
+        reply = ACK_Packet(client_record.last_request, "UNKOWN_STATUS",
+                           client_record.balance, sender_ip, packet.receiver_ip,
+                           packet.transfer_amount);
         std::cerr << RED << "[REQUEST PROCESSOR] INVALID STATUS!" << std::endl;
     }
 

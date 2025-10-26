@@ -49,12 +49,6 @@ int packet_multiplexer(int port) {
         n = recvfrom(sockfd, (char *)buffer, MAX_PACKET_SIZE, MSG_WAITALL,
                      (struct sockaddr *)&cliaddr, &len);
         buffer[n] = '\0';
-
-        // std::cout << BLUE << "Packet from: " << inet_ntoa(cliaddr.sin_addr)
-        //           << ":" << ntohs(cliaddr.sin_port) << RESET << std::endl;
-        // std::cout << BLUE << "Packet content: " << buffer << RESET <<
-        // std::endl;
-
         // convert to string_packet
         char buffer_copy[MAX_PACKET_SIZE + 1];
         mempcpy(buffer_copy, buffer, sizeof(buffer_copy));

@@ -38,7 +38,7 @@ struct db_record_response {
 
 struct db_metadata {
     int num_transactions;
-    int total_transferred;
+    unsigned int total_transferred;
     int total_balance;
 };
 
@@ -80,8 +80,8 @@ class DbManager {
     //   # `UNKNOWN_SENDER` - The ip provided for the sender is not registered
     //     in the database.
     //   # `UNKNOWN_RECEIVER` - The ip provided for the receiver is not
-    //   registered
-    //     in the database.
+    //   registered in the database.
+    //   # `DUPLICATE_IP` - Sender and receiver IPs are the same
     const db_record_response
     make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
                      unsigned long int transfer_amount);
@@ -104,12 +104,13 @@ class DbManager {
 
     std::unordered_map<in_addr_t, pthread_mutex_t *> client_locks;
     pthread_mutex_t database_access_lock;
+    pthread_mutex_t database_metadata_lock;
 
     // The records are kept in an unordere map (indexed by their client_ip,
     // using a hash table  for efficient storage
     std::unordered_map<in_addr_t, client_record> database_records;
 
-    int total_transferred;
+    unsigned int total_transferred;
     int num_transactions;
     int total_balance;
 
@@ -118,6 +119,9 @@ class DbManager {
     // Helper functions to give more semantic to database locking operations
     void lock_database();
     void unlock_database();
+
+    void lock_metadata();
+    void unlock_metadata();
 
     void lock_client(in_addr_t client_ip);
     void unlock_client(in_addr_t client_ip);
