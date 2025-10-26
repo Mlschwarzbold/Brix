@@ -70,9 +70,11 @@ void server_discovery_service(int discovery_service_port,
         sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM,
                (const struct sockaddr *)&cliaddr, len);
 
+#if _DEBUG
         std::cout << GREEN
                   << "Discovery request from: " << inet_ntoa(cliaddr.sin_addr)
                   << ":" << ntohs(cliaddr.sin_port) << RESET << std::endl;
+#endif
     }
 }
 
