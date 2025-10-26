@@ -58,7 +58,7 @@ struct ACK_Packet : public Packet {
         result = res;
         new_balance = balance;
         this->sender_ip = sender_ip;
-        this->receiver_ip = sender_ip;
+        this->receiver_ip = receiver_ip;
         this->transfer_amount = transfer_amount;
     }
 
