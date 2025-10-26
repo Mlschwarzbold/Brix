@@ -26,7 +26,7 @@ REQ_Packet String_Packet::to_REQ_Packet() {
 
     long int seq_num = std::stol(tokens[1]);
     in_addr_t receiver_ip = inet_addr(tokens[2].c_str()); // Get char*`d
-    unsigned long int transfer_amount = std::stoul(tokens[3]);
+    unsigned long transfer_amount = std::stoul(tokens[3]);
 
     return REQ_Packet(seq_num, receiver_ip, transfer_amount);
 }
@@ -53,7 +53,7 @@ ACK_Packet String_Packet::to_ACK_Packet() {
     unsigned long int new_balance = std::stoul(tokens[3]);
     in_addr_t sender_ip = inet_addr(tokens[4].c_str());
     in_addr_t receiver_ip = inet_addr(tokens[5].c_str());
-    int transfer_amount = std::stoi(tokens[6]);
+    unsigned long transfer_amount = std::stoul(tokens[6]);
 
     return ACK_Packet(seq_num, result, new_balance, sender_ip, receiver_ip,
                       transfer_amount);

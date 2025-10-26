@@ -130,7 +130,7 @@ const db_record_response DbManager::register_client(in_addr_t client_ip) {
 
 const db_record_response
 DbManager::make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
-                            unsigned long int transfer_amount) {
+                            unsigned long transfer_amount) {
 
     // Make sure there is no one reading or writing on our clients
     // Get locks

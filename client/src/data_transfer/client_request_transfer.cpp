@@ -71,14 +71,20 @@ void RequestDispatcher::queue_request(std::string input) {
         return;
     }
 
-    in_addr_t dest_ip = inet_addr(tokens[0].c_str());
-    int transfer_amount = std::stoi(tokens[1]);
+    try {
+        in_addr_t dest_ip = inet_addr(tokens[0].c_str());
+        unsigned long transfer_amount = std::stoul(tokens[1]);
 
-    Request request = {dest_ip, transfer_amount};
+        Request request = {dest_ip, transfer_amount};
 
-    pthread_mutex_lock(&request_queue_lock);
-    request_queue.push(request);
-    pthread_mutex_unlock(&request_queue_lock);
+        pthread_mutex_lock(&request_queue_lock);
+        request_queue.push(request);
+        pthread_mutex_unlock(&request_queue_lock);
+
+    } catch (std::invalid_argument &) {
+        std::cout << RED << "Bad input!\n"
+                  << BOLD << "Usage: <IP> <AMOUNT>" << RESET << std::endl;
+    }
 };
 
 void RequestDispatcher::dispatch_request(Request request) {

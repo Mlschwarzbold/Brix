@@ -27,8 +27,8 @@ struct Packet {
 struct REQ_Packet : public Packet {
   public:
     in_addr_t receiver_ip;
-    long int transfer_amount;
-    REQ_Packet(long int seq, in_addr_t ip, long int amount) {
+    unsigned long transfer_amount;
+    REQ_Packet(long int seq, in_addr_t ip, unsigned long amount) {
         packet_type = REQ;
         seq_num = seq;
         receiver_ip = ip;
@@ -46,13 +46,13 @@ struct ACK_Packet : public Packet {
     unsigned long int new_balance;
     in_addr_t sender_ip;
     in_addr_t receiver_ip;
-    int transfer_amount;
+    unsigned long transfer_amount;
 
     ACK_Packet() {}
 
     ACK_Packet(long int seq, std::string res, unsigned long int balance,
                in_addr_t sender_ip, in_addr_t receiver_ip,
-               int transfer_amount) {
+               unsigned long transfer_amount) {
         packet_type = ACK;
         seq_num = seq;
         result = res;

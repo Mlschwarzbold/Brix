@@ -85,9 +85,9 @@ class DbManager {
     //   # `DUPLICATE_IP` - Sender and receiver IPs are the
     //   # `BALANCE_CHECK` - Not a transfer, just a balance check (transfer
     //   amount is 0)
-    const db_record_response
-    make_transaction(in_addr_t sender_ip, in_addr_t receiver_ip,
-                     unsigned long int transfer_amount);
+    const db_record_response make_transaction(in_addr_t sender_ip,
+                                              in_addr_t receiver_ip,
+                                              unsigned long transfer_amount);
 
     // Removes a client's entry from the database records. The value of `record`
     // will always be null, independent of success or failure.

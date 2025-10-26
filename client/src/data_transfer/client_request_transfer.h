@@ -10,7 +10,7 @@ namespace client_request_transfer {
 
 typedef struct {
     in_addr_t dest_ip;
-    int transfer_amount;
+    unsigned long transfer_amount;
 } Request;
 
 class RequestDispatcher {
