@@ -76,7 +76,7 @@ ACK_Packet process_db_transaction(in_addr_t sender_ip, REQ_Packet packet,
                   << "[REQUEST PROCESSOR]: Invalid status code response "
                      "from database: "
                   << result.status_code << RESET << std::endl;
-        return ACK_Packet(0, "UKNW", 0, sender_ip, packet.receiver_ip,
+        return ACK_Packet(0, "SERVER_ERROR", 0, sender_ip, packet.receiver_ip,
                           packet.transfer_amount);
     }
 }
