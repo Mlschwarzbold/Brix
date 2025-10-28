@@ -7,23 +7,7 @@
 
 namespace requests {
 
-void print_status(Packet_status status) {
-    std::cout << GREEN << "Packet status: ";
-    switch (status) {
-    case VALID:
-        std::cout << "VALID" << RESET << std::endl;
-        break;
-    case DUPLICATE:
-        std::cout << "DUPLICATE" << RESET << std::endl;
-        break;
-    case OUT_OF_ORDER:
-        std::cout << "OUT_OF_ORDER" << RESET << std::endl;
-        break;
-    case NO_CLUE:
-        std::cout << "NO_CLUE" << RESET << std::endl;
-        break;
-    }
-}
+
 
 ACK_Packet process_db_transaction(in_addr_t sender_ip, REQ_Packet packet,
                                   db_manager::DbManager *db) {
@@ -123,7 +107,6 @@ Packet_status check_packet_status(REQ_Packet packet,
 }
 
 void *process_req_packet(void *arg) {
-
     process_req_packet_params params = *(process_req_packet_params *)arg;
 
     struct sockaddr_in sender_addr = params.sender_addr;
@@ -138,6 +121,16 @@ void *process_req_packet(void *arg) {
     Packet_status status = check_packet_status(packet, client_record);
 
     ACK_Packet reply;
+
+#if _DEBUG
+    std::cout << BOLD << "[REQ PROCESSOR] Started operation." << RESET
+              << std::endl;
+#endif
+
+#if _DEBUG
+        std::cout << BOLD << "[REQ PROCESSOR] Packet is " << status_to_string(status) << RESET
+                  << std::endl;
+#endif
 
     switch (status) {
     case VALID:
