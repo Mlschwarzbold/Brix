@@ -101,6 +101,8 @@ int packet_multiplexer(int port) {
                 pthread_create(&req_thread, NULL, requests::process_req_packet,
                                params);
 
+                pthread_detach(req_thread);
+
             } catch (const std::exception &e) {
                 std::cerr << RED << "Error parsing REQ Packet: " << e.what()
                           << RESET << std::endl;
@@ -124,6 +126,7 @@ int packet_multiplexer(int port) {
 
             pthread_create(&kill_thread, NULL, requests::process_kill_packet,
                            &params);
+            pthread_detach(kill_thread);
         } else {
             std::cout << RED << "Unexpected Packet Type" << RESET << std::endl;
         }
