@@ -9,7 +9,7 @@ build() {
     echo "- Building $build_type"
 
     mkdir -p "$BUILD_DIR"
-    cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$build_type" 
+    cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$build_type"
     cd "$BUILD_DIR" || exit 1
     make -j 5
     cd ..
@@ -17,8 +17,9 @@ build() {
 
 server() {
     port="${1:-$DEFAULT_PORT}"
+    shift
     build "$@"
-    # clear
+    clear
     print_ip
     echo
     "$BUILD_DIR/server/servidor" "$port"
@@ -26,6 +27,7 @@ server() {
 
 client() {
     port="${1:-$DEFAULT_PORT}"
+    shift
     build "$@"
     clear
     print_ip
@@ -56,6 +58,8 @@ build_container() {
 
 network() {
     build_type="${1:-$DEFAULT_BUILD_TYPE}"
+
+    echo $build_type
 
     # Create a custom Docker network (bridge)
     docker network inspect brix-net >/dev/null 2>&1 || \
