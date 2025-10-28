@@ -72,3 +72,16 @@ std::string KIL_Packet::to_string() {
 
     return packet_str;
 }
+std::string status_to_string(Packet_status s) {
+    switch (s) {
+    case VALID:
+        return "VALID";
+    case DUPLICATE:
+        return "DUPLICATE";
+    case OUT_OF_ORDER:
+        return "OUT_OF_ORDER";
+    case NO_CLUE:
+    default:
+        return "NO_CLUE";
+    }
+}
