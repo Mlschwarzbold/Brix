@@ -49,6 +49,7 @@ int main(int argc, char *argv[]) {
     // DATE <YYYY-MM-DD> TIME <HH:MM:SS> server addr <IP_ADDRESS>:<PORT >
     // 2024-10-01 18:37:00 server_addr 10.1.1.20:4001
 
+
     std::cout << getCurrentDateString() << " " << getCurrentTimeString()
               << " server_addr " << return_server_ip << ":"
               << return_server_port << std::endl;

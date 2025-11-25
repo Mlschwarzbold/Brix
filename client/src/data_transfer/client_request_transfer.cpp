@@ -48,6 +48,7 @@ RequestDispatcher::RequestDispatcher(char request_server_ip[],
 
     pthread_create(&request_dispatcher_thread, NULL,
                    RequestDispatcher::process_requests, NULL);
+                   pthread_detach(request_dispatcher_thread);
 };
 
 RequestDispatcher::~RequestDispatcher() {
