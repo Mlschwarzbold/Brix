@@ -16,6 +16,8 @@ typedef enum _packet_status {
     NO_CLUE
 } Packet_status;
 
+std::string status_to_string(Packet_status s);
+
 // Packet class
 struct Packet {
   public:

@@ -64,8 +64,8 @@ int packet_multiplexer(int port) {
         std::memcpy(&cli_adrr_copy, &cliaddr, sizeof(struct sockaddr_in));
 
 #if _DEBUG
-        std::cout << YELLOW
-                  << "Packet from: " << inet_ntoa(cli_adrr_copy.sin_addr) << ":"
+        std::cout << YELLOW << "[PACKET MULTIPLEXER] Packet from: "
+                  << inet_ntoa(cli_adrr_copy.sin_addr) << ":"
                   << ntohs(cli_adrr_copy.sin_port) << RESET << std::endl;
         std::cout << YELLOW << "Packet content: " << buffer_copy << RESET
                   << std::endl;
@@ -76,6 +76,15 @@ int packet_multiplexer(int port) {
         // If it is a REQ packet, try to parse it
         if (packet_type == REQ) {
             try {
+
+#if _DEBUG
+                std::cout << YELLOW << "[PACKET MULTIPLEXER] Processing REQ."
+                          << inet_ntoa(cli_adrr_copy.sin_addr) << ":"
+                          << ntohs(cli_adrr_copy.sin_port) << RESET
+                          << std::endl;
+                std::cout << YELLOW << "Packet content: " << buffer_copy
+                          << RESET << std::endl;
+#endif
                 REQ_Packet req_packet = str_packet.to_REQ_Packet();
 
                 pthread_t req_thread;
@@ -92,12 +101,22 @@ int packet_multiplexer(int port) {
                 pthread_create(&req_thread, NULL, requests::process_req_packet,
                                params);
 
+                pthread_detach(req_thread);
+
             } catch (const std::exception &e) {
                 std::cerr << RED << "Error parsing REQ Packet: " << e.what()
                           << RESET << std::endl;
             }
 
         } else if (packet_type == KIL) {
+
+#if _DEBUG
+            std::cout << YELLOW << "[PACKET MULTIPLEXER] Processing KILL."
+                      << inet_ntoa(cli_adrr_copy.sin_addr) << ":"
+                      << ntohs(cli_adrr_copy.sin_port) << RESET << std::endl;
+            std::cout << YELLOW << "Packet content: " << buffer_copy << RESET
+                      << std::endl;
+#endif
             KIL_Packet kill_packet = str_packet.to_KIL_Packet();
 
             pthread_t kill_thread;
@@ -107,6 +126,7 @@ int packet_multiplexer(int port) {
 
             pthread_create(&kill_thread, NULL, requests::process_kill_packet,
                            &params);
+            pthread_detach(kill_thread);
         } else {
             std::cout << RED << "Unexpected Packet Type" << RESET << std::endl;
         }

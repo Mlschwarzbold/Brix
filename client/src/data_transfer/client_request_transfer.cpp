@@ -144,7 +144,8 @@ void RequestDispatcher::dispatch_request(Request request) {
 }
 
 void *RequestDispatcher::process_requests(void *arg) {
-    while (is_alive) {
+    // Prevent thread from dying while there are still pending requests
+    while (is_alive || !request_queue.empty()) {
         if (request_queue.empty()) {
             // This could be done using a semaphore for signaling, but I
             // believe this to be somewhat more semantic and
