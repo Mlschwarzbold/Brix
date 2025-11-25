@@ -2,7 +2,10 @@
 
 #include "db_manager.h"
 #include "colors.h"
+#include "data_transfer/socket_utils.h"
 #include <iostream>
+#include <sstream>
+#include <vector>
 
 namespace db_manager {
 
@@ -334,4 +337,68 @@ void DbManager::unlock_client(in_addr_t client_ip) {
     }
 }
 
+const db_snapshot DbManager::get_db_snapshot() {
+    db_metadata metadata = get_db_metadata();
+    std::unordered_map<in_addr_t, client_record> records = database_records;
+
+    return db_snapshot{metadata, records};
+};
+
+db_snapshot db_snapshot::from_string(std::string serialized_db) {
+
+    std::istringstream iss(serialized_db);
+    std::string token;
+    std::vector<std::string> tokens;
+
+    while (iss >> token) {
+        tokens.push_back(token);
+    }
+
+    if (tokens.size() % 4 != 0) {
+        std::cerr << RED << "[DB MANAGER] Error decoding database snapshot: "
+                  << serialized_db << RESET << std::endl;
+    }
+
+    std::unordered_map<in_addr_t, client_record> records =
+        std::unordered_map<in_addr_t, client_record>();
+
+    int num_transactions = std::stoi(tokens[0]);
+    unsigned int total_transferred = std::stoi(tokens[1]);
+    int total_balance = std::stoi(tokens[2]);
+    // tokens[3] is a separator (#)
+
+    db_metadata metadata =
+        db_metadata{num_transactions, total_transferred, total_balance};
+
+    for (std::size_t i = 4; i < tokens.size(); i += 4) {
+        in_addr_t client_ip = inet_addr(tokens[i].c_str());
+        unsigned long int client_balance = stoul(tokens[i + 1]);
+        unsigned int client_last_request = std::stoi(tokens[i + 2]);
+        // tokens[i+3] is a separator (;)
+        client_record record = {client_ip, client_balance, client_last_request};
+        records.insert(std::pair(client_ip, record));
+    }
+
+    return db_snapshot{metadata, records};
+};
+std::string db_snapshot::to_string() {
+    std::stringstream ss;
+
+    // Serialize metadata
+    ss << metadata.num_transactions << " ";
+    ss << metadata.total_transferred << " ";
+    ss << metadata.total_balance << " ";
+    ss << "# ";
+
+    // Serialize records
+    for (std::pair<const unsigned int, client_record> record : records) {
+        client_record client_data = record.second;
+
+        ss << addr_to_string(client_data.ip) << " ";
+        ss << client_data.balance << " ";
+        ss << client_data.last_request << " ; ";
+    }
+
+    return ss.str();
+};
 } // namespace db_manager

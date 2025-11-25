@@ -1,10 +1,13 @@
 #ifndef DB_MANAGER_H
 #define DB_MANAGER_H
 
+#include "colors.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <semaphore.h>
+#include <string>
 #include <unordered_map>
+
 namespace db_manager {
 
 const unsigned long int STARTING_BALANCE = 100000;
@@ -20,7 +23,7 @@ struct client_record {
 
 // All responses from the database manager follow the same format:
 // - A success field, indicating whether or not the operation was successful.
-// - A record field, poiting towards a client record inside the database.
+// - A record field, pointing towards a client record inside the database.
 // - A description field, providing additional information regarding the result
 //   of the request (mostly related to different types of error).
 struct db_record_response {
@@ -41,6 +44,20 @@ struct db_metadata {
     int num_transactions;
     unsigned int total_transferred;
     int total_balance;
+};
+
+// Serializes to:
+// `num_transactions total_transferred total_balance #`
+// ` client1.ip client1.balance client1.last_request ;`
+// ` client2.ip client2.balance client2.last_request ;`
+// ...
+// ` clientN.ip clientN.balance clientN.last_request`
+struct db_snapshot {
+    db_metadata metadata;
+    std::unordered_map<in_addr_t, client_record> records;
+
+    std::string to_string();
+    static db_snapshot from_string(std::string serialized_db);
 };
 
 class DbManager {
@@ -69,7 +86,7 @@ class DbManager {
 
     // Registers a transaction between two clients.
     // Transfers `amount` from the sender's balance to the receiver's balance,
-    // first validating it is enought to actually fulfill the request. If the
+    // first validating it is enough to actually fulfill the request. If the
     // request is successful (i.e. the sender had enough balance to send to that
     // ip AND the sender and receiver are registered in the system), returns
     // true inside success, otherwise, returns false. Either way, it returns a
@@ -98,9 +115,11 @@ class DbManager {
 
     // Retrieves data about the database:
     // - Number of transactions
-    // - Total amount of money transfered
+    // - Total amount of money transferred
     // - Total balance in the database
     const db_metadata get_db_metadata();
+
+    const db_snapshot get_db_snapshot();
 
   private:
     DbManager();
@@ -109,7 +128,7 @@ class DbManager {
     pthread_mutex_t database_access_lock;
     pthread_mutex_t database_metadata_lock;
 
-    // The records are kept in an unordere map (indexed by their client_ip,
+    // The records are kept in an unordered map (indexed by their client_ip,
     // using a hash table  for efficient storage
     std::unordered_map<in_addr_t, client_record> database_records;
 
