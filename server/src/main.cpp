@@ -1,6 +1,7 @@
 #include "colors.h"
 #include "date_time_utils.h"
 #include "db_manager/db_manager.h"
+#include "db_synchronizer/db_synchronizer.h"
 #include "greeter/server_UDP_greeter.h"
 #include "multiplexer/packet_multiplexer.h"
 #include <iostream>
@@ -34,6 +35,8 @@ int main(int argc, char *argv[]) {
 
     db_manager::DbManager *db = db_manager::DbManager::get_instance();
 
+    db_synchronizer::DB_Synchronizer::setup(port);
+
     // Porta válida, iniciar servidor
     std::cout << YELLOW << "Servidor iniciado na porta: " << port << RESET
               << std::endl;
@@ -42,13 +45,16 @@ int main(int argc, char *argv[]) {
 
     print_startup_message(db_metadata);
 
-    pthread_t greeter_thread, multiplexer_thread;
+    pthread_t greeter_thread, multiplexer_thread, synchronizer_thread;
 
     pthread_create(&greeter_thread, NULL, udp_server_greeter::start_server,
                    (void *)&port);
 
     pthread_create(&multiplexer_thread, NULL,
                    multiplexer::start_multiplexer_server, (void *)&port);
+
+    pthread_create(&synchronizer_thread, NULL, db_synchronizer::start_server,
+                   nullptr);
 
     pthread_join(greeter_thread, NULL);
     pthread_join(multiplexer_thread, NULL);

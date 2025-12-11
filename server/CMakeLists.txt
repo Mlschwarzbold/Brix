@@ -6,6 +6,7 @@ add_executable(
     src/multiplexer/packet_multiplexer.cpp
     src/request_handler/REQ_packet_handler.cpp
     src/request_handler/KIL_packet_handler.cpp
+    src/db_synchronizer/db_synchronizer.cpp
     )
 
 # Link with common library if it exists
