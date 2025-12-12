@@ -60,9 +60,14 @@ int main(int argc, char *argv[]) {
 
     pthread_create(&heartbeat_thread, NULL, election::start_heartbeat_receiver, (void *)&port);
 
+
+    //election::heartbeat_test("122.0.0.2", port + 2, 1000, 3);
+
     pthread_join(greeter_thread, NULL);
     pthread_join(multiplexer_thread, NULL);
     pthread_join(heartbeat_thread, NULL);
+
+
 
     delete db;
     return 0;
