@@ -3,11 +3,10 @@
 #include "data_transfer/socket_utils.h"
 #include "date_time_utils.h"
 #include "db_manager/db_manager.h"
+#include "db_synchronizer/db_synchronizer.h"
 #include <iostream>
 
 namespace requests {
-
-
 
 ACK_Packet process_db_transaction(in_addr_t sender_ip, REQ_Packet packet,
                                   db_manager::DbManager *db) {
@@ -128,8 +127,8 @@ void *process_req_packet(void *arg) {
 #endif
 
 #if _DEBUG
-        std::cout << BOLD << "[REQ PROCESSOR] Packet is " << status_to_string(status) << RESET
-                  << std::endl;
+    std::cout << BOLD << "[REQ PROCESSOR] Packet is "
+              << status_to_string(status) << RESET << std::endl;
 #endif
 
     switch (status) {
@@ -161,6 +160,12 @@ void *process_req_packet(void *arg) {
     }
 
     std::string reply_string = reply.to_string();
+
+    if (reply.result == "SUCCESS") {
+        std::cout << " FOOBAR";
+        db_synchronizer::DB_Synchronizer::get_instance()->broadcast_update(
+            db->get_db_snapshot());
+    }
 
     sendto(reply_sockfd, reply_string.data(), reply_string.length(),
            MSG_CONFIRM, (const struct sockaddr *)&sender_addr,

@@ -401,4 +401,11 @@ std::string db_snapshot::to_string() {
 
     return ss.str();
 };
+
+void DbManager::load_snapshot(db_snapshot snapshot) {
+    this->database_records = snapshot.records;
+    this->num_transactions = snapshot.metadata.num_transactions;
+    this->total_balance = snapshot.metadata.total_balance;
+    this->total_transferred = snapshot.metadata.total_transferred;
+}
 } // namespace db_manager

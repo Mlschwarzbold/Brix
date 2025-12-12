@@ -121,6 +121,8 @@ class DbManager {
 
     const db_snapshot get_db_snapshot();
 
+    void load_snapshot(db_snapshot snapshot);
+
   private:
     DbManager();
 
