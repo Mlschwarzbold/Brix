@@ -8,6 +8,9 @@ build() {
     build_type="${1:-$DEFAULT_BUILD_TYPE}"
     echo "- Building $build_type"
 
+    cmake -S . -B build
+    cmake --build build --target servidor -- -j$(nproc)
+
     mkdir -p "$BUILD_DIR"
     cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE="$build_type"
     cd "$BUILD_DIR" || exit 1

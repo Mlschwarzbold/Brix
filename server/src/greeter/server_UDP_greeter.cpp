@@ -46,4 +46,8 @@ std::string get_self_ip() {
     return inet_ntoa(*addr);
 }
 
+void test_print(){
+    std::cout << "TEST PRINT" << std::endl;
+}
+
 } // namespace udp_server_greeter

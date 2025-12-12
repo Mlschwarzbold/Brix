@@ -3,6 +3,7 @@
 #include "db_manager/db_manager.h"
 #include "greeter/server_UDP_greeter.h"
 #include "multiplexer/packet_multiplexer.h"
+#include "election/heartbeat.h"
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -42,7 +43,7 @@ int main(int argc, char *argv[]) {
 
     print_startup_message(db_metadata);
 
-    pthread_t greeter_thread, multiplexer_thread;
+    pthread_t greeter_thread, multiplexer_thread, heartbeat_thread;
 
     pthread_create(&greeter_thread, NULL, udp_server_greeter::start_server,
                    (void *)&port);
@@ -50,8 +51,11 @@ int main(int argc, char *argv[]) {
     pthread_create(&multiplexer_thread, NULL,
                    multiplexer::start_multiplexer_server, (void *)&port);
 
+    pthread_create(&heartbeat_thread, NULL, election::start_heartbeat_receiver, (void *)&port);
+
     pthread_join(greeter_thread, NULL);
     pthread_join(multiplexer_thread, NULL);
+    pthread_join(heartbeat_thread, NULL);
 
     delete db;
     return 0;
