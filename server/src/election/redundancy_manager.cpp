@@ -53,6 +53,13 @@ namespace election {
         port_n = 4000; // default requests port
         // create heartbeat receiver thread
         pthread_create(&heartbeat_thread, NULL, election::start_heartbeat_receiver, (void *)&port_n);
+        pthread_detach(heartbeat_thread);
+
+        // create heartbeat tester thread
+        pthread_create(&heartbeat_tester_thread, NULL, election::start_heartbeat_tester_loop, (void *)&port_n);
+        pthread_detach(heartbeat_tester_thread);    
+
+        
 
         single_socket_election();
     }

@@ -129,7 +129,7 @@ namespace election {
         if (num_retries >= tries) {
             std::cout << MAGENTA << "Could not get a response, main server down" << RESET <<std::endl;
             close(sockfd);
-            return -1; // max retries reached
+            return false; // max retries reached
         }
 
         close(sockfd);
@@ -139,18 +139,28 @@ namespace election {
     }
 
 
-    void heartbeat_tester_loop(const char *target_ip, int target_port, int timeout_ms, int tries){
+    void heartbeat_tester_loop(int target_port, int timeout_ms, int tries){
 
+        auto RM = RedundancyManager::get_instance();
+        const char *ip_str;
         while (true) {
             // wait before next test
-            std::this_thread::sleep_for(std::chrono::milliseconds(timeout_ms));
-            if(RedundancyManager::get_instance()->is_coordinator) continue; // skip if we are coordinator
+            std::this_thread::sleep_for(std::chrono::seconds(8));
+            
+            ip_str = inet_ntoa(*(in_addr *)&RM->coordinator_ip);
 
-            bool alive = heartbeat_test(target_ip, target_port, timeout_ms, tries);
+            std::cout << CYAN << ip_str << RESET << std::endl;
+
+            if(RM->is_coordinator) continue; // skip if we are coordinator
+            if(RM->coordinator_ip == 0) continue; // skip if we don't know coordinator ip
+
+            
+
+            bool alive = heartbeat_test( ip_str, target_port, timeout_ms, tries);
             if (!alive) {
                 std::cout << RED << "No heartbeat response from main server. Initiating election..." << RESET << std::endl;
                 // initiate election
-                RedundancyManager::get_instance()->backup_election();
+                RM->backup_election();
                 return;
             }
             
@@ -166,7 +176,8 @@ namespace election {
         std::cout << RED << "Starting Heartbeat Tester Loop targeting port " << port << RESET
                 << std::endl;
     #endif
-        return nullptr;
+        (void)heartbeat_tester_loop(port, 10, 3);
+        return 0;
     }
 
 } // namespace election
