@@ -7,6 +7,7 @@
 #include "data_transfer/socket_utils.h"
 #include <bits/stdc++.h>
 #include "ports.h"
+#include "redundancy_manager.h"
 
 #define MAXLINE_HEARTBEAT 32
 
@@ -51,7 +52,7 @@ namespace election {
                 (const struct sockaddr *)&cliaddr, len);
 
     #if _DEBUG
-            std::cout << GREEN
+            std::cout << RED
                     << "Heartbeat request from: " << inet_ntoa(cliaddr.sin_addr)
                     << ":" << ntohs(cliaddr.sin_port) << RESET << std::endl;
     #endif
@@ -61,10 +62,10 @@ namespace election {
 
 
     void *start_heartbeat_receiver(void *arg) {
-        int port = (*(int *)arg) + HEARTBEAT_PORT_DELTA;
+        int port = *(int *)arg + HEARTBEAT_PORT_DELTA;
 
     #if _DEBUG
-        std::cout << MAGENTA << "Starting Heartbeat Receiver on port " << port << RESET
+        std::cout << RED << "Starting Heartbeat Receiver on port " << port << RESET
                 << std::endl;
     #endif
         (void)heartbeat_receiver(port);
@@ -135,6 +136,37 @@ namespace election {
         return false;
 
 
+    }
+
+
+    void heartbeat_tester_loop(const char *target_ip, int target_port, int timeout_ms, int tries){
+
+        while (true) {
+            // wait before next test
+            std::this_thread::sleep_for(std::chrono::milliseconds(timeout_ms));
+            if(RedundancyManager::get_instance()->is_coordinator) continue; // skip if we are coordinator
+
+            bool alive = heartbeat_test(target_ip, target_port, timeout_ms, tries);
+            if (!alive) {
+                std::cout << RED << "No heartbeat response from main server. Initiating election..." << RESET << std::endl;
+                // initiate election
+                RedundancyManager::get_instance()->backup_election();
+                return;
+            }
+            
+        }
+
+        return;
+    }
+
+    void *start_heartbeat_tester_loop(void *arg){
+        int port = *(int *)arg + HEARTBEAT_PORT_DELTA;
+
+    #if _DEBUG
+        std::cout << RED << "Starting Heartbeat Tester Loop targeting port " << port << RESET
+                << std::endl;
+    #endif
+        return nullptr;
     }
 
 } // namespace election

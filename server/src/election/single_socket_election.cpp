@@ -79,7 +79,8 @@ void RedundancyManager::single_socket_election() {
         switch (state) {
         case INIT:
             state = IN_PROGRESS;
-            is_coordinator = false;
+            is_coordinator = false; // Start as non-coordinator
+            in_standby_mode = false;
             // Send election message with own id
             broadcast_election_message();
             break;
@@ -217,7 +218,7 @@ int RedundancyManager::ss_election_result_switch() {
 void RedundancyManager::start_election_procedure() {
 
     state = IN_PROGRESS;
-    is_coordinator = false;
+    //is_coordinator = false;
     // Answer election messages with own id
     send_answer_back();
 
@@ -225,6 +226,15 @@ void RedundancyManager::start_election_procedure() {
     broadcast_election_message();
     return;
 }
+
+void RedundancyManager::backup_election() {
+
+    state = IN_PROGRESS;
+    // Send election message with own id
+    broadcast_election_message();
+    return;
+}
+
 
 void RedundancyManager::handle_election_message() {
     if (last_received_id < id) {
@@ -243,11 +253,16 @@ void RedundancyManager::handle_answer_message() {
 }
 
 void RedundancyManager::handle_coordinator_announcement() {
-    is_coordinator = false;
+
     state = NOT_IN_PROGRESS;
     std::cout << RED << "Coordinator announcement received" << RESET
               << std::endl;
     coordinator_ip = ss_cliaddr.sin_addr.s_addr;
+
+    if(is_coordinator){
+        demote();
+    }
+    
     return;
 }
 
@@ -257,9 +272,14 @@ void RedundancyManager::handle_in_progress_timeout() {
         // std::cout << MAGENTA << "[ELECTION MANAGER]: I am the new
         // coordinator!"
         //           << RESET << std::endl;
-        is_coordinator = true;
         send_coordinator_announcement();
         state = NOT_IN_PROGRESS;
+
+        if(!is_coordinator){
+            promote();
+        } else{
+            
+        }
     } // else just wait
 }
 

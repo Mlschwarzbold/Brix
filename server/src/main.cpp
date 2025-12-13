@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 
     print_startup_message(db_metadata);
 
-    pthread_t greeter_thread, multiplexer_thread, synchronizer_thread, heartbeat_thread;
+    pthread_t greeter_thread, multiplexer_thread, synchronizer_thread;
 
     pthread_create(&greeter_thread, NULL, udp_server_greeter::start_server,
                    (void *)&port);
@@ -59,16 +59,17 @@ int main(int argc, char *argv[]) {
                    nullptr);
 
 
-    pthread_create(&heartbeat_thread, NULL, election::start_heartbeat_receiver, (void *)&port);
+    //pthread_create(&heartbeat_thread, NULL, election::start_heartbeat_receiver, (void *)&port);
 
 
-    election::RedundancyManager::get_instance();
+    election::RedundancyManager::get_instance()->init();
+
         
     //election::heartbeat_test("122.0.0.2", port + 2, 1000, 3);
 
     pthread_join(greeter_thread, NULL);
     pthread_join(multiplexer_thread, NULL);
-    pthread_join(heartbeat_thread, NULL);
+    //pthread_join(heartbeat_thread, NULL);
 
 
 

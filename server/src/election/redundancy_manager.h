@@ -13,24 +13,31 @@ namespace election {
     public:
         ~RedundancyManager();
         static RedundancyManager *get_instance();
-        static void* start_election(void *arg);
-        void election();
-        static void* start_election_waiting_server(void *arg);
-        void await_election();
+
+        void init();
         void stand_by();
-
-        void start_election_thread();
-
         void single_socket_election();
-        int ss_election_result_switch();
+        void backup_election();
+
+        void promote();
+        void demote();
+
+        void enter_standby_mode();
+        void exit_standby_mode();
+
+        void start_heartbeat_tester_thread();
+        void start_heartbeat_receiver_thread();
+        
 
         bool is_coordinator;
         in_addr_t coordinator_ip;
         bool in_standby_mode;
 
+        int port_n;
+
     private:
         RedundancyManager();
-        void election_result_switch();
+        int ss_election_result_switch();
         bool is_valid_answer(char *buffer, int n);
         bool is_valid_coord_announcement(char *buffer, int n);
         bool is_valid_election_message(char *buffer, int n);
@@ -74,6 +81,9 @@ namespace election {
         char election_message[ELECTION_MAXLINE + 1];
         char answer_message[ELECTION_MAXLINE + 1];
         char coord_announcement_message[ELECTION_MAXLINE + 1];
+
+
+        pthread_t heartbeat_thread, heartbeat_tester_thread;
 
 
 

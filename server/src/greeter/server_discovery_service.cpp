@@ -72,15 +72,18 @@ void server_discovery_service(int discovery_service_port,
                   << ":" << ntohs(cliaddr.sin_port) << RESET << std::endl;
 #endif
 
+
+        
         election::RedundancyManager *redundancy_manager =
             election::RedundancyManager::get_instance();
 
+        /*
         if (!redundancy_manager->is_coordinator) {
             // If not coordinator, start election to see if there is any of
             // them alive before doing anything
             // redundancy_manager->await_election();
             redundancy_manager->await_election();
-        }
+        } */
 
         // If we already were the coordinator, or if we were just elected,
         // handle the request
