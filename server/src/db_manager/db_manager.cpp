@@ -403,6 +403,27 @@ std::string db_snapshot::to_string() {
 };
 
 void DbManager::load_snapshot(db_snapshot snapshot) {
+    // Remove existing mutexes
+    for (std::pair<const unsigned int, pthread_mutex_t *> client_mutex :
+         client_locks) {
+        free(client_mutex.second);
+    }
+
+    this->client_locks.clear();
+
+    for (std::pair<const unsigned int, client_record> record :
+         snapshot.records) {
+        auto client_ip = record.first;
+
+        pthread_mutex_t *client_mutex =
+            (pthread_mutex_t *)malloc(sizeof(sem_t));
+
+        pthread_mutex_init(client_mutex, NULL);
+
+        // Try to insert it into the mutex dictionary
+        client_locks.insert(std::pair(client_ip, client_mutex));
+    }
+
     this->database_records = snapshot.records;
     this->num_transactions = snapshot.metadata.num_transactions;
     this->total_balance = snapshot.metadata.total_balance;
