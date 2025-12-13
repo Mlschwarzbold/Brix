@@ -1,4 +1,5 @@
 #include "client_request_transfer.h"
+#include "client_discovery_protocol.h"
 #include "colors.h"
 #include "data_transfer/socket_utils.h"
 #include "date_time_utils.h"
@@ -13,10 +14,12 @@ namespace client_request_transfer {
 
 const int MAXLINE = 2048;
 const int MAX_RETRIES = 5;
+const int INITIAL_TIMEOUT = 200;
 
 bool RequestDispatcher::is_alive;
 int RequestDispatcher::sockfd;
 struct sockaddr_in RequestDispatcher::servaddr;
+int RequestDispatcher::location_service_port;
 
 pthread_mutex_t RequestDispatcher::request_queue_lock;
 pthread_t RequestDispatcher::request_dispatcher_thread;
@@ -24,12 +27,11 @@ pthread_t RequestDispatcher::request_dispatcher_thread;
 std::queue<Request> RequestDispatcher::request_queue;
 int RequestDispatcher::current_request;
 
-RequestDispatcher::RequestDispatcher(char request_server_ip[],
-                                     int request_server_port,
-                                     int initial_timeout_ms) {
+RequestDispatcher::RequestDispatcher(int port) {
     is_alive = true;
     current_request = 1;
     request_queue = std::queue<Request>();
+    location_service_port = port;
 
     pthread_mutex_init(&request_queue_lock, NULL);
 
@@ -37,18 +39,14 @@ RequestDispatcher::RequestDispatcher(char request_server_ip[],
     sockfd = create_udp_socket();
 
     // Add timeout
-    set_timeout(sockfd, initial_timeout_ms);
+    set_timeout(sockfd, INITIAL_TIMEOUT);
 
     memset(&servaddr, 0, sizeof(servaddr));
 
-    // Filling server information
-    servaddr = create_sockaddr(request_server_ip, request_server_port);
-
-    // std::thread request_dispatcher_thread(process_requests);
+    locate_request_server();
 
     pthread_create(&request_dispatcher_thread, NULL,
                    RequestDispatcher::process_requests, NULL);
-                   pthread_detach(request_dispatcher_thread);
 };
 
 RequestDispatcher::~RequestDispatcher() {
@@ -87,7 +85,8 @@ void RequestDispatcher::dispatch_request(Request request) {
 #if _DEBUG
         std::cout << BLUE
                   << "[REQUEST DISPATCHER] Dispatching: " << serialized_request
-                  << RESET << std::endl;
+                  << " to " << addr_to_string(servaddr.sin_addr.s_addr) << ":"
+                  << servaddr.sin_port << RESET << std::endl;
 #endif
 
         sendto(sockfd, serialized_request.data(), serialized_request.length(),
@@ -103,6 +102,8 @@ void RequestDispatcher::dispatch_request(Request request) {
                       << RESET << std::endl;
 #endif
 
+            // Figure out if server is not down
+            locate_request_server();
             continue;
         }
 
@@ -167,11 +168,9 @@ void *RequestDispatcher::process_requests(void *arg) {
     return nullptr;
 };
 
-RequestDispatcher *RequestDispatcher::get_instance(char *request_server_ip,
-                                                   int request_server_port,
-                                                   int initial_timeout_ms) {
-    static RequestDispatcher *instance = new RequestDispatcher(
-        request_server_ip, request_server_port, initial_timeout_ms);
+RequestDispatcher *RequestDispatcher::get_instance(int location_service_port) {
+    static RequestDispatcher *instance =
+        new RequestDispatcher(location_service_port);
     return instance;
 }
 
@@ -278,5 +277,31 @@ request_t request_t::from_string(std::string input) {
                   << BOLD << "Usage: <IP> <AMOUNT>" << RESET << std::endl;
         return {0, 0, ERROR};
     }
+};
+void RequestDispatcher::locate_request_server() {
+    std::cout << location_service_port << std::endl;
+    // Broadcast para descobrir IP do servidor
+    char request_server_ip[INET_ADDRSTRLEN];
+    int request_server_port;
+    if (client_discovery_protocol(request_server_ip, &request_server_port,
+                                  (char *)"255.255.255.255",
+                                  location_service_port, 5, 500) == 0) {
+#if _DEBUG
+        std::cout << YELLOW << "Server found at IP: " << request_server_ip
+                  << " Port: " << request_server_port << RESET << std::endl;
+#endif
+    } else {
+        std::cerr << "Server not found" << std::endl;
+    }
+
+    // Formato da mensagem de inicio do cliente
+    // DATE <YYYY-MM-DD> TIME <HH:MM:SS> server addr <IP_ADDRESS>:<PORT >
+    // 2024-10-01 18:37:00 server_addr 10.1.1.20:4001
+
+    std::cout << getCurrentDateString() << " " << getCurrentTimeString()
+              << " server_addr " << request_server_ip << ":"
+              << request_server_port << std::endl;
+
+    servaddr = create_sockaddr(request_server_ip, request_server_port);
 };
 } // namespace client_request_transfer

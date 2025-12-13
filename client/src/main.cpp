@@ -30,33 +30,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Broadcast para descobrir IP do servidor
-    char return_server_ip[INET_ADDRSTRLEN];
-    int return_server_port;
-    if (client_discovery_protocol(return_server_ip, &return_server_port,
-                                  (char *)"255.255.255.255", port, 5,
-                                  500) == 0) {
-#if _DEBUG
-        std::cout << YELLOW << "Server found at IP: " << return_server_ip
-                  << " Port: " << return_server_port << RESET << std::endl;
-#endif
-    } else {
-        std::cerr << "Server not found" << std::endl;
-        return 1;
-    }
-
-    // Formato da mensagem de inicio do cliente
-    // DATE <YYYY-MM-DD> TIME <HH:MM:SS> server addr <IP_ADDRESS>:<PORT >
-    // 2024-10-01 18:37:00 server_addr 10.1.1.20:4001
-
-
-    std::cout << getCurrentDateString() << " " << getCurrentTimeString()
-              << " server_addr " << return_server_ip << ":"
-              << return_server_port << std::endl;
-
     client_request_transfer::RequestDispatcher *request_processor =
-        client_request_transfer::RequestDispatcher::get_instance(
-            return_server_ip, return_server_port, 500);
+        client_request_transfer::RequestDispatcher::get_instance(port);
 
     // Process user text
     std::string input;

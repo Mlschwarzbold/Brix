@@ -18,9 +18,7 @@ typedef struct request_t {
 
 class RequestDispatcher {
   public:
-    static RequestDispatcher *get_instance(char *request_server_ip,
-                                           int request_server_port,
-                                           int initial_timeout_ms);
+    static RequestDispatcher *get_instance(int location_service_port);
 
     ~RequestDispatcher();
 
@@ -29,8 +27,8 @@ class RequestDispatcher {
     void queue_test(std::string test_string);
 
   private:
-    RequestDispatcher(char request_server_ip[], int request_server_port,
-                      int initial_timeout_ms);
+    RequestDispatcher(int location_service_port);
+    static void locate_request_server();
 
     static void *process_requests(void *arg);
 
@@ -41,6 +39,7 @@ class RequestDispatcher {
     static bool is_alive;
     static int sockfd;
     static struct sockaddr_in servaddr;
+    static int location_service_port;
 
     static pthread_mutex_t request_queue_lock;
     static pthread_t request_dispatcher_thread;
