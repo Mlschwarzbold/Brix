@@ -51,7 +51,7 @@ struct db_metadata {
 // ` client1.ip client1.balance client1.last_request ;`
 // ` client2.ip client2.balance client2.last_request ;`
 // ...
-// ` clientN.ip clientN.balance clientN.last_request`
+// ` clientN.ip clientN.balance clientN.last_request ;`
 struct db_snapshot {
     db_metadata metadata;
     std::unordered_map<in_addr_t, client_record> records;
