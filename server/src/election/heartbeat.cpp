@@ -6,6 +6,7 @@
 #include <cstring>
 #include "data_transfer/socket_utils.h"
 #include <bits/stdc++.h>
+#include "ports.h"
 
 #define MAXLINE_HEARTBEAT 32
 
@@ -60,7 +61,7 @@ namespace election {
 
 
     void *start_heartbeat_receiver(void *arg) {
-        int port = (*(int *)arg) + 2;
+        int port = (*(int *)arg) + HEARTBEAT_PORT_DELTA;
 
     #if _DEBUG
         std::cout << MAGENTA << "Starting Heartbeat Receiver on port " << port << RESET

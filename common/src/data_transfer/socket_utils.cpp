@@ -61,7 +61,7 @@ struct sockaddr_in create_sockaddr(const char *ip, int port) {
 
 int bind_to_sockaddr(int sockfd, struct sockaddr_in *addr) {
     if (bind(sockfd, (const struct sockaddr *)addr, sizeof(*addr)) < 0) {
-        std::cerr << "bind failed" << std::endl;
+        std::cerr << "bind failed, port " << ntohs(addr->sin_port) << std::endl;
         close(sockfd);
         return -1;
     }
