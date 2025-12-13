@@ -214,6 +214,7 @@ namespace election{
         is_coordinator = false;
         state = NOT_IN_PROGRESS;
         std::cout << RED << "Coordinator announcement received" << RESET << std::endl;
+        coordinator_ip = ss_cliaddr.sin_addr.s_addr;
         return;
     }
 
