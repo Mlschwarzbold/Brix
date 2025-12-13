@@ -122,9 +122,9 @@ election() {
     # Run server in first pane
     tmux send-keys -t $SESSION:0.0 "docker run --rm --network brix-net --name server1 -it brix server 4000 $build_type" C-m
     
-    # Split window vertically orizontally, run first client
+    # Split window vertically orizontally, run fourth server
     tmux split-window -v -t $SESSION:0.0
-    #tmux send-keys -t $SESSION:0.1 "sleep 1 && docker run --rm --network brix-net --name client1 -it brix client 4000 $build_type" C-m
+    tmux send-keys -t $SESSION:0.1 "sleep 1 && docker run --rm --network brix-net --name server4 -it brix server 4000 $build_type" C-m
 
     # Split window vertically, run third server
     tmux split-window -h -t $SESSION:0.0

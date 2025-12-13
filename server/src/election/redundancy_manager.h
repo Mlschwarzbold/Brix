@@ -54,6 +54,7 @@ namespace election {
         void start_election_procedure();
         void broadcast_election_message();
         void send_answer_back();
+        void send_coordinator_announcement();
         void handle_election_message();
         void handle_answer_message();
         void handle_in_progress_timeout();

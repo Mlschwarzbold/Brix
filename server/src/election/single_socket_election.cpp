@@ -53,7 +53,7 @@ namespace election{
         
         current_wait_time = 0;
         start_time = get_current_time_ms();
-        answer_max_wait_time = 800; // time to wait for coordinator announcement
+        answer_max_wait_time = 4000; // time to wait for coordinator announcement
         std::cout << "starting Finite State machine" << std::endl;
         while(true){
             // clear buffer
@@ -87,7 +87,7 @@ namespace election{
                 // --------- NOT IN PROGRESS ---------
                 case NOT_IN_PROGRESS:
                     current_wait_time = 0;
-                    std::cout << "NOT IN PROGRESS STATE" << std::endl;
+                    std::cout << "NOT IN PROGRESS STATE" << is_coordinator << std::endl;
                     switch (ss_election_result_switch()) {
                         case COORD_ANNOUNCEMENT:
                             handle_coordinator_announcement();
@@ -105,13 +105,14 @@ namespace election{
                             // remain in NOT IN PROGRESS, just wait
                             break;
                         default:
-                            std::cout << YELLOW << "INVALID MESSAGE RECEIVED - " << ss_buffer << RESET << std::endl;
+                            if(last_received_id != id) std::cout << YELLOW << "INVALID MESSAGE RECEIVED - " << ss_buffer << RESET << std::endl;
                             break;
                         }
                     break;
                 // --------- ELECTION IN PROGRESS ---------
                 case IN_PROGRESS:
                     std::cout << "IN PROGRESS STATE" << std::endl;
+                    current_wait_time = get_current_time_ms() - start_time;
                     switch (ss_election_result_switch()) {
                         case COORD_ANNOUNCEMENT:
                             handle_coordinator_announcement();
@@ -147,7 +148,7 @@ namespace election{
 
 
 
-            current_wait_time = get_current_time_ms() - start_time;
+            
         }
     }
 
@@ -212,6 +213,7 @@ namespace election{
     void RedundancyManager::handle_coordinator_announcement(){
         is_coordinator = false;
         state = NOT_IN_PROGRESS;
+        std::cout << RED << "Coordinator announcement received" << RESET << std::endl;
         return;
     }
 
@@ -220,6 +222,7 @@ namespace election{
             // no answers or coordinator announcement received, become coordinator
             std::cout << YELLOW << "I am the new coordinator!" << RESET << std::endl;
             is_coordinator = true;
+            send_coordinator_announcement();
             state = NOT_IN_PROGRESS;
         } // else just wait
     }
@@ -242,6 +245,16 @@ namespace election{
         sendto(ss_sockfd, election_message, strlen(election_message), MSG_CONFIRM,
                 (const struct sockaddr *)&broadcastcast_addr, broadcastcast_len);
         std::cout << BOLD << "Election message broadcasted." << RESET << std::endl;
+
+    }
+
+    void RedundancyManager::send_coordinator_announcement(){
+
+        // broadcast coordinator announcement message
+        sendto(ss_sockfd, coord_announcement_message, strlen(coord_announcement_message), MSG_CONFIRM,
+                (const struct sockaddr *)&broadcastcast_addr, broadcastcast_len);
+        std::cout << BOLD << "Coordinator announcement message broadcasted." << RESET << std::endl;
+
 
     }
 
