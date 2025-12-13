@@ -102,9 +102,9 @@ void RedundancyManager::single_socket_election() {
             case ANSWER:
                 break;
             case ELECTION:
-                // Broadcast database, for safety
+                // Broadcast database, for safety, if coordinator
                 
-                db_synchronizer::DB_Synchronizer::get_instance()->broadcast_update(
+                if(is_coordinator) db_synchronizer::DB_Synchronizer::get_instance()->broadcast_update(
                     db_instance->get_db_snapshot());
                 // start election process
                 std::cout << MAGENTA
