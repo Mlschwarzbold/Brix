@@ -11,6 +11,7 @@ DB_Synchronizer *DB_Synchronizer::instance;
 int DB_Synchronizer::sockfd;
 int DB_Synchronizer::port;
 struct sockaddr_in DB_Synchronizer::servaddr;
+struct sockaddr_in DB_Synchronizer::bcastaddr;
 bool DB_Synchronizer::isAlive;
 
 void *start_server(void *arg) {
@@ -34,6 +35,9 @@ DB_Synchronizer::DB_Synchronizer(int port) {
     memset(&servaddr, 0, sizeof(servaddr));
 
     this->servaddr = create_sockaddr("255.255.255.255", this->port);
+    this->servaddr.sin_addr.s_addr = INADDR_ANY;
+
+    this->bcastaddr = create_sockaddr("255.255.255.255", this->port);
 
     bind_to_sockaddr(sockfd, &this->servaddr);
 }
@@ -45,27 +49,37 @@ void DB_Synchronizer::broadcast_update(db_manager::db_snapshot snapshot) {
               << std::endl;
 
     sendto(sockfd, serialized_snapshot.data(), serialized_snapshot.length(), 0,
-           (const struct sockaddr *)&servaddr, sizeof(servaddr));
+           (const struct sockaddr *)&bcastaddr, sizeof(bcastaddr));
+
+    std::cout << GREEN << "[DB SYNCHRONIZER]: Finished broadcast." << RESET
+              << std::endl;
 }
 
 void DB_Synchronizer::listen_for_updates() {
     int n;
     char buffer[MAXLINE + 1];
-    socklen_t len;
     db_manager::DbManager *db = db_manager::DbManager::get_instance();
+    struct sockaddr_in src;
+    socklen_t srclen = sizeof(src);
 
     while (isAlive) {
         n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL,
-                     (struct sockaddr *)&servaddr, &len);
+                     (struct sockaddr *)&src, &srclen);
         if (n < 0) {
             std::cerr << YELLOW << "Timeout or error fetching updates... \n"
                       << RESET << std::endl;
         } else {
-            std::cout << GREEN
-                      << "[DB SYNCHRONIZER] Message received: " << buffer
-                      << RESET << std::endl;
+            // Ignore messages from ourselves
+            if (addr_to_string(src.sin_addr.s_addr) != get_self_ip()) {
+                std::cout << GREEN
+                          << "[DB SYNCHRONIZER] Message received: " << buffer
+                          << RESET << std::endl;
 
-            db->load_snapshot(db_manager::db_snapshot::from_string(buffer));
+                db->load_snapshot(db_manager::db_snapshot::from_string(buffer));
+
+                auto snapshot = db->get_db_snapshot();
+                std::cout << snapshot.to_string() << std::endl;
+            }
         }
     }
 }

@@ -1,13 +1,14 @@
 #include "socket_utils.h"
+#include "colors.h"
 #include <arpa/inet.h>
 #include <iostream>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <netdb.h>
 
 // Create a UDP socket and return its file descriptor
 int create_udp_socket() {
@@ -80,20 +81,27 @@ std::string addr_to_string(in_addr_t addr) {
     return std::string(buffer);
 }
 
-
 std::string get_self_ip() {
-    char hostname[256];
-
-    if (gethostname(hostname, sizeof(hostname)) == -1) {
-        return 0;
+    static std::string ip = "undefined";
+    // Cache ip so we don't have to do all of the code below for each call
+    if (ip != "undefined") {
+        return ip;
     }
 
-    hostent *host_entry = gethostbyname(hostname);
-    if (host_entry == nullptr) {
-        return 0;
-    }
+    int sock = create_udp_socket();
+    enable_broadcast(sock);
 
-    in_addr *addr = (in_addr *)host_entry->h_addr_list[0];
+    struct sockaddr_in bcast = create_sockaddr("255.255.255.255", 6767);
+    connect(sock, (struct sockaddr *)&bcast, sizeof(bcast));
 
-    return inet_ntoa(*addr);
+    struct sockaddr_in local = {};
+    socklen_t len = sizeof(local);
+    getsockname(sock, (struct sockaddr *)&local, &len);
+
+    char my_ip[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &local.sin_addr, my_ip, sizeof(my_ip));
+
+    ip = my_ip;
+
+    return ip;
 }
