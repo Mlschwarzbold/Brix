@@ -21,7 +21,8 @@ typedef enum {
 
 typedef enum {
     NOT_IN_PROGRESS,
-    IN_PROGRESS
+    IN_PROGRESS,
+    WAITING_FOR_COORD
 } ElectionState;
 
 namespace election{
@@ -34,7 +35,7 @@ namespace election{
         // socket creation and setup
         ss_sockfd = create_udp_socket();
         enable_broadcast(ss_sockfd);
-        set_timeout(ss_sockfd, 500);
+        set_timeout(ss_sockfd, 900);
         memset(&ss_cliaddr, 0, sizeof(ss_cliaddr));
         ss_servaddr = create_sockaddr("0.0.0.0", 4000 + SS_PORT_DELTA); // use messages port for single socket
         bind_to_sockaddr(ss_sockfd, &ss_servaddr);
@@ -45,13 +46,13 @@ namespace election{
         broadcastcast_addr.sin_addr.s_addr = htonl(INADDR_BROADCAST);     // 255.255.255.255 (or use subnet broadcast)
         broadcastcast_len = sizeof(broadcastcast_addr);
 
-        int state = NOT_IN_PROGRESS;
+        state = NOT_IN_PROGRESS;
         //int response_wait_time_ms = 0;
 
         
-        //long elapsed_time = 0;
-        //long start_time = get_current_time_ms();
-        //long answer_wait_time = 500; // time to wait for coordinator announcement
+        current_wait_time = 0;
+        start_time = get_current_time_ms();
+        answer_max_wait_time = 800; // time to wait for coordinator announcement
         std::cout << "starting Finite State machine" << std::endl;
         while(true){
             // clear buffer
@@ -78,6 +79,7 @@ namespace election{
             switch(state){
                 // --------- NOT IN PROGRESS ---------
                 case NOT_IN_PROGRESS:
+                    current_wait_time = 0;
                     std::cout << "NOT IN PROGRESS STATE" << std::endl;
                     switch (ss_election_result_switch()) {
                         case COORD_ANNOUNCEMENT:
@@ -87,8 +89,9 @@ namespace election{
                         case ELECTION:
                             // start election process
                             std::cout << GREEN << "ELECTION MESSAGE RECEIVED" << RESET << std::endl;
-                            //state = IN_PROGRESS;
-                            start_election_procedure();
+                            if(last_received_id < id) start_election_procedure(); //if we have higher id, start election
+                            else state = WAITING_FOR_COORD; // if we have lower id, do nothing and wait for coordinator announcement  
+
                             break;
                         case TIMEOUT:   
                             // remain in NOT IN PROGRESS, just wait
@@ -107,6 +110,23 @@ namespace election{
                         case ANSWER:
                             break;
                         case ELECTION:
+                            handle_election_message();
+                            break;
+                        case TIMEOUT:
+                            handle_in_progress_timeout();
+                            break;
+                        }
+                    break;
+                case WAITING_FOR_COORD:
+                current_wait_time = 0;
+                std::cout << "WAITING FOR COORD" << std::endl;
+                    switch (ss_election_result_switch()) {
+                        case COORD_ANNOUNCEMENT:
+                            break;
+                        case ANSWER:
+                            handle_answer_message();
+                            break;
+                        case ELECTION:
                             break;
                         case TIMEOUT:
                             break;
@@ -117,7 +137,7 @@ namespace election{
 
 
 
-            //elapsed_time = get_current_time_ms() - start_time;
+            current_wait_time = get_current_time_ms() - start_time;
         }
     }
 
@@ -151,19 +171,58 @@ namespace election{
 
 
     void RedundancyManager::start_election_procedure(){
+
+        state = IN_PROGRESS;
+        is_coordinator = false;
         // Answer election messages with own id
-        broadcast_election_message();
+        send_answer_back(); 
 
         // Send election message with own id
-
+        broadcast_election_message();
         return;
+    }
+
+    void RedundancyManager::handle_election_message(){
+        if (last_received_id < id) {
+            send_answer_back();
+        } else {
+            state = WAITING_FOR_COORD;
+        }
+
+    }
+
+    void RedundancyManager:: handle_answer_message(){
+        if (last_received_id < id) {
+            // nao deveria acontecer, ignora
+        } else {
+            state = WAITING_FOR_COORD;
+        }
+    }
+
+    void RedundancyManager::handle_in_progress_timeout(){
+        if(current_wait_time >= answer_max_wait_time){
+            // no answers or coordinator announcement received, become coordinator
+            std::cout << YELLOW << "I am the new coordinator!" << RESET << std::endl;
+            is_coordinator = true;
+            state = NOT_IN_PROGRESS;
+        } // else just wait
+    }
+
+    
+    void RedundancyManager::send_answer_back(){
+
+        sendto(ss_sockfd, answer_message, strlen(answer_message), MSG_CONFIRM,
+                (const struct sockaddr *)&ss_cliaddr, ss_len);
+
+        std::cout << BOLD << "Answer message sent to " << inet_ntoa(ss_cliaddr.sin_addr) << RESET << std::endl;
+
     }
 
 
     void RedundancyManager::broadcast_election_message(){
 
         // broadcast election message
-        
+
         sendto(ss_sockfd, election_message, strlen(election_message), MSG_CONFIRM,
                 (const struct sockaddr *)&broadcastcast_addr, broadcastcast_len);
         std::cout << BOLD << "Election message broadcasted." << RESET << std::endl;

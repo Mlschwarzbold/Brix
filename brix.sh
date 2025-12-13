@@ -103,6 +103,42 @@ network() {
     tmux attach -t $SESSION
 }
 
+election() {
+    build_type="${1:-$DEFAULT_BUILD_TYPE}"
+
+    echo $build_type
+
+    # Create a custom Docker network (bridge)
+    docker network inspect brix-net >/dev/null 2>&1 || \
+    docker network create brix-net
+
+    # Start tmux session
+    SESSION="brix-session"
+    tmux new-session -d -s $SESSION
+
+    # Enable mouse mode inside tmux
+    tmux set-option -t $SESSION mouse on
+
+    # Run server in first pane
+    tmux send-keys -t $SESSION:0.0 "docker run --rm --network brix-net --name server1 -it brix server 4000 $build_type" C-m
+    
+    # Split window vertically orizontally, run first client
+    tmux split-window -v -t $SESSION:0.0
+    tmux send-keys -t $SESSION:0.1 "sleep 1 && docker run --rm --network brix-net --name client1 -it brix client 4000 $build_type" C-m
+
+    # Split window vertically, run third server
+    tmux split-window -h -t $SESSION:0.0
+    tmux send-keys -t $SESSION:0.1 "sleep 3 && docker run --rm --network brix-net --name server3 -it brix server 4000 $build_type" C-m
+
+    # Split again, run second server
+    tmux split-window -h -t $SESSION:0.1
+    #tmux send-keys -t $SESSION:0.2 "sleep 2 && docker run --rm --network brix-net --name server2 -it brix server 4000 $build_type" C-m
+
+    # Attach to session
+    tmux select-layout -t "$SESSION" tiled
+    tmux attach -t $SESSION
+}
+
 # Dispatch based on the first argument
 case "$1" in
     build)
@@ -134,8 +170,13 @@ case "$1" in
     reset_network)
         reset_network
         ;;
+    election)
+        shift
+        build_container
+        election "$@"
+        ;;
     *)
-        echo "Usage: $0 {build [release]|server [port] [release]|client [port] [release]|build_container|network|show_ip|clean|reset_network}"
+        echo "Usage: $0 {build [release]|server [port] [release]|client [port] [release]|build_container|network|election|show_ip|clean|reset_network}"
         exit 1
         ;;
 esac

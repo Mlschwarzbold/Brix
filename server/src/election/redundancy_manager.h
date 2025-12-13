@@ -48,9 +48,22 @@ namespace election {
         struct sockaddr_in broadcastcast_addr;
         socklen_t broadcastcast_len;
 
+        int state;
+        unsigned int last_received_id;
+
         void start_election_procedure();
         void broadcast_election_message();
         void send_answer_back();
+        void handle_election_message();
+        void handle_answer_message();
+        void handle_in_progress_timeout();
+
+        //bool possible_coordinator;
+        long answer_max_wait_time;
+        long current_wait_time;
+        long start_time;
+        long elapsed_time;
+
 
         // ELE, ANS and CRD messages (fixed as TYPE <id> END)
         char election_message[ELECTION_MAXLINE + 1];

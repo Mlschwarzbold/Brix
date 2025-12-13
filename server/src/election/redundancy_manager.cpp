@@ -147,6 +147,8 @@ namespace election {
         std::string msg;
         int n;
 
+        last_received_id = 0;
+
         // 3 possible scenarios:
         // 1 -> received answer, not coordinator
         // 2 -> received coordinaor announcement, end election, not coordinator
@@ -237,6 +239,7 @@ namespace election {
         std::string tag, end;
         if ((iss >> tag >> responder_id >> end) && tag == "ANS" && end == "END" && responder_id != id) { // not valid if from self
             // valid
+            last_received_id = responder_id;
             return true;
         } else {
             // invalid
@@ -253,6 +256,7 @@ namespace election {
         std::string tag, end;
         if ((iss >> tag >> coordinator_id >> end) && tag == "CRD" && end == "END" && coordinator_id != id) { // not valid if from self
             // valid
+            last_received_id = coordinator_id;
             return true;
         } else {
             // invalid
@@ -261,21 +265,22 @@ namespace election {
     }
 
     bool RedundancyManager::is_valid_election_message(char *buffer, int n){
-        std::cout << BOLD << "msg: " << buffer << RESET << std::endl;
+        //std::cout << BOLD << "msg: " << buffer << RESET << std::endl;
         unsigned int sender_id;
         if (n <= 0) {
-            std::cout << BOLD << "invalid election message n <= 0" << RESET << std::endl;
+            //std::cout << BOLD << "invalid election message n <= 0" << RESET << std::endl;
             return false;
         }
         std::istringstream iss(buffer);
         std::string tag, end;
         if ((iss >> tag >> sender_id >> end) && tag == "ELE" && end == "END" && sender_id != id) { // not valid if from self
             // valid
-            std::cout << BOLD << "valid election message from id " << sender_id << RESET << std::endl;
+            //std::cout << BOLD << "valid election message from id " << sender_id << RESET << std::endl;
+            last_received_id = sender_id;
             return true;
         } else {
             // invalid
-            std::cout << BOLD << "invalid election message format" << RESET << std::endl;
+            //std::cout << BOLD << "invalid election message format" << RESET << std::endl;
             return false;
 }
     }
