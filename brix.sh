@@ -124,15 +124,15 @@ election() {
     
     # Split window vertically orizontally, run first client
     tmux split-window -v -t $SESSION:0.0
-    tmux send-keys -t $SESSION:0.1 "sleep 1 && docker run --rm --network brix-net --name client1 -it brix client 4000 $build_type" C-m
+    #tmux send-keys -t $SESSION:0.1 "sleep 1 && docker run --rm --network brix-net --name client1 -it brix client 4000 $build_type" C-m
 
     # Split window vertically, run third server
     tmux split-window -h -t $SESSION:0.0
-    tmux send-keys -t $SESSION:0.1 "sleep 3 && docker run --rm --network brix-net --name server3 -it brix server 4000 $build_type" C-m
+    tmux send-keys -t $SESSION:0.1 "sleep 0 && docker run --rm --network brix-net --name server3 -it brix server 4000 $build_type" C-m
 
     # Split again, run second server
     tmux split-window -h -t $SESSION:0.1
-    #tmux send-keys -t $SESSION:0.2 "sleep 2 && docker run --rm --network brix-net --name server2 -it brix server 4000 $build_type" C-m
+    tmux send-keys -t $SESSION:0.2 "sleep 0 && docker run --rm --network brix-net --name server2 -it brix server 4000 $build_type" C-m
 
     # Attach to session
     tmux select-layout -t "$SESSION" tiled

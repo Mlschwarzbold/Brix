@@ -20,6 +20,7 @@ typedef enum {
 } ElectionSwitchResult;
 
 typedef enum {
+    INIT,
     NOT_IN_PROGRESS,
     IN_PROGRESS,
     WAITING_FOR_COORD
@@ -46,7 +47,7 @@ namespace election{
         broadcastcast_addr.sin_addr.s_addr = htonl(INADDR_BROADCAST);     // 255.255.255.255 (or use subnet broadcast)
         broadcastcast_len = sizeof(broadcastcast_addr);
 
-        state = NOT_IN_PROGRESS;
+        state = INIT;
         //int response_wait_time_ms = 0;
 
         
@@ -77,12 +78,19 @@ namespace election{
             
 
             switch(state){
+                case INIT:
+                    state = IN_PROGRESS;
+                    is_coordinator = false;
+                    // Send election message with own id
+                    broadcast_election_message();
+                    break;
                 // --------- NOT IN PROGRESS ---------
                 case NOT_IN_PROGRESS:
                     current_wait_time = 0;
                     std::cout << "NOT IN PROGRESS STATE" << std::endl;
                     switch (ss_election_result_switch()) {
                         case COORD_ANNOUNCEMENT:
+                            handle_coordinator_announcement();
                             break;
                         case ANSWER:
                             break;
@@ -106,6 +114,7 @@ namespace election{
                     std::cout << "IN PROGRESS STATE" << std::endl;
                     switch (ss_election_result_switch()) {
                         case COORD_ANNOUNCEMENT:
+                            handle_coordinator_announcement();
                             break;
                         case ANSWER:
                             break;
@@ -122,6 +131,7 @@ namespace election{
                 std::cout << "WAITING FOR COORD" << std::endl;
                     switch (ss_election_result_switch()) {
                         case COORD_ANNOUNCEMENT:
+                            handle_coordinator_announcement();
                             break;
                         case ANSWER:
                             handle_answer_message();
@@ -197,6 +207,12 @@ namespace election{
         } else {
             state = WAITING_FOR_COORD;
         }
+    }
+
+    void RedundancyManager::handle_coordinator_announcement(){
+        is_coordinator = false;
+        state = NOT_IN_PROGRESS;
+        return;
     }
 
     void RedundancyManager::handle_in_progress_timeout(){

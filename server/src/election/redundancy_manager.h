@@ -57,6 +57,7 @@ namespace election {
         void handle_election_message();
         void handle_answer_message();
         void handle_in_progress_timeout();
+        void handle_coordinator_announcement();
 
         //bool possible_coordinator;
         long answer_max_wait_time;
