@@ -8,6 +8,7 @@
 #include <cstring>
 #include <iostream>
 #include <pthread.h>
+#include "db_synchronizer/db_synchronizer.h"
 
 #define ELECTION_MAXLINE 128
 
@@ -50,6 +51,8 @@ void RedundancyManager::single_socket_election() {
 
     state = INIT;
     // int response_wait_time_ms = 0;
+
+    auto db_instance = db_manager::DbManager::get_instance();
 
     current_wait_time = 0;
     start_time = get_current_time_ms();
@@ -99,6 +102,10 @@ void RedundancyManager::single_socket_election() {
             case ANSWER:
                 break;
             case ELECTION:
+                // Broadcast database, for safety
+                
+                db_synchronizer::DB_Synchronizer::get_instance()->broadcast_update(
+                    db_instance->get_db_snapshot());
                 // start election process
                 std::cout << MAGENTA
                           << "[ELECTION MANAGER] Election message received. "
