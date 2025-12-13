@@ -5,7 +5,6 @@
 
 namespace db_synchronizer {
 const int MAXLINE = 1024;
-const int BROADCAST_TIMEOUT = 5000;
 
 DB_Synchronizer *DB_Synchronizer::instance;
 int DB_Synchronizer::sockfd;
@@ -30,8 +29,6 @@ DB_Synchronizer::DB_Synchronizer(int port) {
     // Enable broadcast
     enable_broadcast(sockfd);
 
-    set_timeout(sockfd, BROADCAST_TIMEOUT);
-
     memset(&servaddr, 0, sizeof(servaddr));
 
     this->servaddr = create_sockaddr("255.255.255.255", this->port);
@@ -50,9 +47,6 @@ void DB_Synchronizer::broadcast_update(db_manager::db_snapshot snapshot) {
 
     sendto(sockfd, serialized_snapshot.data(), serialized_snapshot.length(), 0,
            (const struct sockaddr *)&bcastaddr, sizeof(bcastaddr));
-
-    std::cout << GREEN << "[DB SYNCHRONIZER]: Finished broadcast." << RESET
-              << std::endl;
 }
 
 void DB_Synchronizer::listen_for_updates() {
@@ -66,7 +60,8 @@ void DB_Synchronizer::listen_for_updates() {
         n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL,
                      (struct sockaddr *)&src, &srclen);
         if (n < 0) {
-            std::cerr << YELLOW << "Timeout or error fetching updates... \n"
+            std::cerr << YELLOW
+                      << "[DATABASE SYNC.] Error fetching updates... \n"
                       << RESET << std::endl;
         } else {
             // Ignore messages from ourselves
@@ -74,6 +69,8 @@ void DB_Synchronizer::listen_for_updates() {
                 std::cout << GREEN
                           << "[DB SYNCHRONIZER] Message received: " << buffer
                           << RESET << std::endl;
+
+                buffer[n] = '\0';
 
                 db->load_snapshot(db_manager::db_snapshot::from_string(buffer));
 

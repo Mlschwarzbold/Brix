@@ -52,7 +52,6 @@ int client_discovery_protocol(char *return_server_ip, int *return_server_port,
     strncpy(send_buffer, discovery_message, MAXLINE);
 
     while (num_retries < max_retries) {
-
         // send discovery message
         sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM,
                (const struct sockaddr *)&servaddr, sizeof(servaddr));
