@@ -10,6 +10,8 @@
 #include <unistd.h>
 
 #include "db_manager/db_manager.h"
+#include "db_synchronizer/db_synchronizer.h"
+#include "election/redundancy_manager.h"
 
 namespace udp_server_greeter {
 
@@ -64,17 +66,37 @@ void server_discovery_service(int discovery_service_port,
         n = recvfrom(sockfd, (char *)buffer, MAXLINE, MSG_WAITALL,
                      (struct sockaddr *)&cliaddr, &len);
         buffer[n] = '\0';
-
-        db_instance->register_client(cliaddr.sin_addr.s_addr);
-
-        sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM,
-               (const struct sockaddr *)&cliaddr, len);
-
 #if _DEBUG
         std::cout << GREEN
                   << "Discovery request from: " << inet_ntoa(cliaddr.sin_addr)
                   << ":" << ntohs(cliaddr.sin_port) << RESET << std::endl;
 #endif
+
+        election::RedundancyManager *redundancy_manager =
+            election::RedundancyManager::get_instance();
+
+        if (!redundancy_manager->is_coordinator) {
+            // If not coordinator, start election to see if there is any of
+            // them alive before doing anything
+            // redundancy_manager->await_election();
+            redundancy_manager->await_election();
+        }
+
+        // If we already were the coordinator, or if we were just elected,
+        // handle the request
+        if (redundancy_manager->is_coordinator) {
+            db_instance->register_client(cliaddr.sin_addr.s_addr);
+            db_manager::db_snapshot snapshot = db_instance->get_db_snapshot();
+
+            sendto(sockfd, send_buffer, strlen(send_buffer), MSG_CONFIRM,
+                   (const struct sockaddr *)&cliaddr, len);
+
+            // Propagate new client
+            db_synchronizer::DB_Synchronizer *db_sync =
+                db_synchronizer::DB_Synchronizer::get_instance();
+
+            db_sync->broadcast_update(snapshot);
+        }
     }
 }
 
