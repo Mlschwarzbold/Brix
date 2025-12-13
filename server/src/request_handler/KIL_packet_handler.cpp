@@ -62,7 +62,8 @@ void *process_kill_packet(void *arg) {
                     .to_string();
 #if _DEBUG
         std::cout << MAGENTA
-                  << "[KILL PROCESSOR]: Got unexpected result from database!";
+                  << "[KILL PROCESSOR]: Got unexpected result from database!"
+                  << std::endl;
 #endif
     }
 
@@ -71,7 +72,8 @@ void *process_kill_packet(void *arg) {
 
     if (result.status_code == db_manager::db_record_response::SUCCESS) {
         auto db_sync = db_synchronizer::DB_Synchronizer::get_instance();
-        db_sync->broadcast_update(db->get_db_snapshot());
+        auto db_snapshot = db->get_db_snapshot();
+        db_sync->broadcast_update(db_snapshot);
     }
 
     return nullptr;
