@@ -24,6 +24,9 @@ namespace election {
         void single_socket_election();
         int ss_election_result_switch();
 
+        bool is_coordinator;
+        in_addr_t coordinator_ip;
+
     private:
         RedundancyManager();
         void election_result_switch();
@@ -33,7 +36,6 @@ namespace election {
 
         unsigned int id;
         bool election_in_progress;
-        bool is_coordinator;
         int election_message_port, election_response_port;
         int election_messages_socket, election_responses_socket;
         struct sockaddr_in messages_servaddr, responses_servaddr, messages_cliaddr, responses_cliaddr;

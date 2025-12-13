@@ -36,7 +36,7 @@ namespace election{
         // socket creation and setup
         ss_sockfd = create_udp_socket();
         enable_broadcast(ss_sockfd);
-        set_timeout(ss_sockfd, 900);
+        set_timeout(ss_sockfd, 10);
         memset(&ss_cliaddr, 0, sizeof(ss_cliaddr));
         ss_servaddr = create_sockaddr("0.0.0.0", 4000 + SS_PORT_DELTA); // use messages port for single socket
         bind_to_sockaddr(ss_sockfd, &ss_servaddr);
@@ -53,7 +53,7 @@ namespace election{
         
         current_wait_time = 0;
         start_time = get_current_time_ms();
-        answer_max_wait_time = 4000; // time to wait for coordinator announcement
+        answer_max_wait_time = 200; // time to wait for coordinator announcement
         std::cout << "starting Finite State machine" << std::endl;
         while(true){
             // clear buffer
@@ -63,7 +63,7 @@ namespace election{
                             (struct sockaddr *)&ss_cliaddr, &ss_len);
                 ss_buffer[ss_n] = '\0';
 
-            if(ss_n > 0) std::cout << BOLD << "Message received: " << ss_buffer << " from " << inet_ntoa(ss_cliaddr.sin_addr) << " port " << ntohs(ss_cliaddr.sin_port) << RESET << std::endl;
+            //if(ss_n > 0) std::cout << BOLD << "Message received: " << ss_buffer << " from " << inet_ntoa(ss_cliaddr.sin_addr) << " port " << ntohs(ss_cliaddr.sin_port) << RESET << std::endl;
             
             // ignore loopback (127.0.0.0/8)
             uint32_t src_h = ntohl(ss_cliaddr.sin_addr.s_addr);
@@ -87,7 +87,7 @@ namespace election{
                 // --------- NOT IN PROGRESS ---------
                 case NOT_IN_PROGRESS:
                     current_wait_time = 0;
-                    std::cout << "NOT IN PROGRESS STATE" << is_coordinator << std::endl;
+                    //std::cout << "NOT IN PROGRESS STATE" << is_coordinator << std::endl;
                     switch (ss_election_result_switch()) {
                         case COORD_ANNOUNCEMENT:
                             handle_coordinator_announcement();
@@ -105,13 +105,13 @@ namespace election{
                             // remain in NOT IN PROGRESS, just wait
                             break;
                         default:
-                            if(last_received_id != id) std::cout << YELLOW << "INVALID MESSAGE RECEIVED - " << ss_buffer << RESET << std::endl;
+                            //if(last_received_id != id) std::cout << YELLOW << "INVALID MESSAGE RECEIVED - " << ss_buffer << RESET << std::endl;
                             break;
                         }
                     break;
                 // --------- ELECTION IN PROGRESS ---------
                 case IN_PROGRESS:
-                    std::cout << "IN PROGRESS STATE" << std::endl;
+                    //std::cout << "IN PROGRESS STATE" << std::endl;
                     current_wait_time = get_current_time_ms() - start_time;
                     switch (ss_election_result_switch()) {
                         case COORD_ANNOUNCEMENT:
@@ -129,7 +129,7 @@ namespace election{
                     break;
                 case WAITING_FOR_COORD:
                 current_wait_time = 0;
-                std::cout << "WAITING FOR COORD" << std::endl;
+                ///std::cout << "WAITING FOR COORD" << std::endl;
                     switch (ss_election_result_switch()) {
                         case COORD_ANNOUNCEMENT:
                             handle_coordinator_announcement();
@@ -157,19 +157,19 @@ namespace election{
             bool socket_timeout = true;
 
             if (is_valid_coord_announcement(ss_buffer, ss_n)) {
-                std::cout << BOLD << "Coordinator announcement received from " << inet_ntoa(ss_cliaddr.sin_addr) << RESET << std::endl;
+                //std::cout << BOLD << "Coordinator announcement received from " << inet_ntoa(ss_cliaddr.sin_addr) << RESET << std::endl;
                 socket_timeout = false;
                 return COORD_ANNOUNCEMENT;
             }
 
             if (is_valid_answer(ss_buffer, ss_n)) {
-                std::cout << BOLD << "Answer received from " << inet_ntoa(ss_cliaddr.sin_addr) << RESET << std::endl;
+                //std::cout << BOLD << "Answer received from " << inet_ntoa(ss_cliaddr.sin_addr) << RESET << std::endl;
                 socket_timeout = false;
                 return ANSWER;
             }
 
             if(is_valid_election_message(ss_buffer, ss_n)){
-                std::cout << BOLD << "Election message received from " << inet_ntoa(ss_cliaddr.sin_addr) << RESET << std::endl;
+                //std::cout << BOLD << "Election message received from " << inet_ntoa(ss_cliaddr.sin_addr) << RESET << std::endl;
                 socket_timeout = false;
                 return ELECTION;
             }
