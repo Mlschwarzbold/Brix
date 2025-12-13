@@ -2,6 +2,7 @@
 #include "colors.h"
 #include "data_transfer/socket_utils.h"
 #include "db_manager/db_manager.h"
+#include "db_synchronizer/db_synchronizer.h"
 #include "iostream"
 
 namespace requests {
@@ -67,6 +68,11 @@ void *process_kill_packet(void *arg) {
 
     sendto(reply_sockfd, reply.data(), reply.length(), MSG_CONFIRM,
            (const struct sockaddr *)&sender_addr, sizeof(sender_addr));
+
+    if (result.status_code == db_manager::db_record_response::SUCCESS) {
+        auto db_sync = db_synchronizer::DB_Synchronizer::get_instance();
+        db_sync->broadcast_update(db->get_db_snapshot());
+    }
 
     return nullptr;
 }

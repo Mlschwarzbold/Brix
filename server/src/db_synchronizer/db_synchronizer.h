@@ -21,6 +21,7 @@ class DB_Synchronizer {
     static int sockfd;
     static int port;
     static struct sockaddr_in servaddr;
+    static struct sockaddr_in bcastaddr;
     DB_Synchronizer(int port);
 };
 

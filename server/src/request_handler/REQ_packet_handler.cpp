@@ -162,7 +162,6 @@ void *process_req_packet(void *arg) {
     std::string reply_string = reply.to_string();
 
     if (reply.result == "SUCCESS") {
-        std::cout << " FOOBAR";
         db_synchronizer::DB_Synchronizer::get_instance()->broadcast_update(
             db->get_db_snapshot());
     }
