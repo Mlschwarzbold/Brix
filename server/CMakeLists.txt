@@ -9,6 +9,7 @@ add_executable(
     src/db_synchronizer/db_synchronizer.cpp
     src/election/heartbeat.cpp
     src/election/redundancy_manager.cpp
+    src/election/single_socket_election.cpp
     )
 
 # Link with common library if it exists

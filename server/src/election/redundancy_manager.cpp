@@ -9,7 +9,7 @@
 #include "date_time_utils.h"
 #include "ports.h"
 
-#define ELECTION_MAXLINE 128
+
 
 namespace election {
 
@@ -22,7 +22,7 @@ namespace election {
 
     // convert to int
     id = ntohl(ip);
-    std::cout << GREEN << "My ID is: " << id << RESET << std::endl;
+    std::cout << CYAN << "My ID is: " << id << RESET << std::endl;
 
     // Create election sockets
     election_message_port = 4000 + ELECTION_MESSAGES_PORT_DELTA;
@@ -59,18 +59,22 @@ namespace election {
     election_in_progress = false;
 
 
-    pthread_t election_listener_thread, election_thread;
+    single_socket_election();
+
+
+    //pthread_t election_listener_thread; //, election_thread;
 
     // start listening for election messages
-    int *port_ptr = new int(4000);
-    pthread_create(&election_listener_thread, NULL, &RedundancyManager::start_election_waiting_server, (void *)port_ptr);
-    pthread_detach(election_listener_thread);
+    //int *port_ptr = new int(4000);
+    //pthread_create(&election_listener_thread, NULL, &RedundancyManager::start_election_waiting_server, (void *)port_ptr);
+    //pthread_create(&election_listener_thread, NULL, &RedundancyManager::start_election_waiting_server, (void *)NULL);
+    //pthread_detach(election_listener_thread);
 
 
     // start election
-    int *election_port_ptr = new int(4000);
-    pthread_create(&election_thread, NULL, &RedundancyManager::start_election, (void *)election_port_ptr);
-    pthread_detach(election_thread);
+    //int *election_port_ptr = new int(4000);
+    //pthread_create(&election_thread, NULL, &RedundancyManager::start_election, (void *)election_port_ptr);
+    //pthread_detach(election_thread);
 
     }
 
@@ -87,11 +91,9 @@ namespace election {
     }
 
     void* RedundancyManager::start_election(void *arg){
-        int port = *(int *)arg;
-        delete (int*)arg; // free heap memory passed to the thread
 
     #if _DEBUG
-        std::cout << BLUE << "Starting election on port " << port + ELECTION_MESSAGES_PORT_DELTA << RESET
+        std::cout << BLUE << "Starting election " << RESET
                 << std::endl;
     #endif
 
@@ -112,7 +114,6 @@ namespace election {
 
         // format: "ELE <ID> END"
         snprintf(send_buffer, sizeof(send_buffer), "ELE %u END", id);
-
 
         // Broadcast election message
         sendto(election_messages_socket, send_buffer, strlen(send_buffer), MSG_CONFIRM,
@@ -149,6 +150,13 @@ namespace election {
                         (struct sockaddr *)&responses_cliaddr, &len);
             buffer[n] = '\0';
 
+            // ignore loopback (127.0.0.0/8)
+            uint32_t src_h = ntohl(responses_cliaddr.sin_addr.s_addr);
+            if ((src_h & 0xff000000) == 0x7f000000) {
+                // received from loopback, ignore
+                continue;
+            }
+
             if (is_valid_coord_announcement(buffer, n)) {
                 std::cout << YELLOW << "Coordinator announcement received from " << inet_ntoa(responses_cliaddr.sin_addr) << RESET << std::endl;
                 is_coordinator = false;
@@ -173,6 +181,13 @@ namespace election {
                 n = recvfrom(election_responses_socket, (char *)buffer, ELECTION_MAXLINE, MSG_WAITALL,
                             (struct sockaddr *)&responses_cliaddr, &len);
                 buffer[n] = '\0';
+
+                // ignore loopback (127.0.0.0/8)
+                uint32_t src_h = ntohl(responses_cliaddr.sin_addr.s_addr);
+                if ((src_h & 0xff000000) == 0x7f000000) {
+                    // received from loopback, ignore
+                    continue;
+                }
 
                 if (is_valid_coord_announcement(buffer, n)) {
                     std::cout << YELLOW << "Coordinator announcement received from " << inet_ntoa(responses_cliaddr.sin_addr) << RESET << std::endl;
@@ -238,8 +253,24 @@ namespace election {
         return false;
     }
 
+    bool RedundancyManager::is_valid_election_message(char *buffer, int n){
+        unsigned int sender_id;
+        if (n <= 0) {
+            return false;
+        }
+        std::string response(buffer);
+        if (response.find("ELE") == 0) {
+            //check higher id
+            sscanf(buffer, "ELE %u END", &sender_id);
+            if (sender_id > id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     void* RedundancyManager::start_election_waiting_server(void *arg) {
-        delete (int*)arg; // free heap memory passed to the thread
+        //delete (int*)arg; // free heap memory passed to the thread
 
         RedundancyManager::get_instance()->await_election();
         return 0;
@@ -251,7 +282,7 @@ namespace election {
         char send_buffer[ELECTION_MAXLINE + 1];
 
     #if _DEBUG
-        std::cout << BLUE << "Starting waiting election messages on port " << election_message_port << RESET
+        std::cout << CYAN << "Starting waiting election messages on port " << election_message_port << RESET
                 << std::endl;
     #endif
 
@@ -270,25 +301,49 @@ namespace election {
                         (struct sockaddr *)&messages_cliaddr, &len);
             buffer[n] = '\0';
 
-            std::cout << YELLOW << "Election message received from " << inet_ntoa(messages_cliaddr.sin_addr) << RESET << std::endl;
-            // answer with a response
-            sendto(election_responses_socket, send_buffer, strlen(send_buffer), MSG_CONFIRM,
-                (const struct sockaddr *)&messages_cliaddr, len);
-
-            // start election, if not already in progress
-            if (!election_in_progress) {
-                //start_election();
+            // ignore loopback (127.0.0.0/8)
+            uint32_t src_h = ntohl(responses_cliaddr.sin_addr.s_addr);
+            if ((src_h & 0xff000000) == 0x7f000000) {
+                // received from loopback, ignore
                 continue;
             }
 
-    #if _DEBUG
-            std::cout << GREEN
-                    << "Election message from: " << inet_ntoa(messages_cliaddr.sin_addr)
-                    << ":" << ntohs(messages_cliaddr.sin_port) << RESET << std::endl;
-    #endif
+        #if _DEBUG
+            std::cout << CYAN << "Election message received from "
+                << inet_ntoa(messages_cliaddr.sin_addr) << RESET << std::endl;
+        #endif
+            
+            // answer with a response
+            sendto(election_responses_socket, send_buffer, strlen(send_buffer), MSG_CONFIRM,
+                (const struct sockaddr *)&responses_cliaddr, len);
+
+            // start election, if not already in progress
+            if (!election_in_progress) {
+                election_in_progress = true;
+
+            #if _DEBUG
+                std::cout << CYAN << "Starting election " << RESET << std::endl;
+            #endif
+            
+                // Send election broacast
+                // format: "ELE <ID> END"
+                snprintf(send_buffer, sizeof(send_buffer), "ELE %u END", id);
+                
+                start_election_thread();
+                
+                continue;
+            }
+
+
         }
 
     }
+
+    void RedundancyManager::start_election_thread(){
+        pthread_t election_thread;
+        pthread_create(&election_thread, NULL, &RedundancyManager::start_election, (void *)NULL);
+        pthread_detach(election_thread);
+    }   
     
 
 }// namespace election
