@@ -20,4 +20,6 @@ void close_socket(int sockfd);
 
 std::string addr_to_string(in_addr_t addr);
 
+std::string get_self_ip();
+
 #endif // SOCKET_UTILS_H

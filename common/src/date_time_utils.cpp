@@ -1,6 +1,7 @@
 #include <ctime>
 #include <iostream>
 #include "date_time_utils.h"
+#include <chrono>
 
 char *getCurrentDateString() {
     std::time_t t = std::time(0);   // Get the time now
@@ -18,4 +19,13 @@ char *getCurrentTimeString() {
     static char time_str[9];
     std::strftime(time_str, sizeof(time_str), "%H:%M:%S", now);
     return time_str;
+}
+
+int get_current_time_ms() {
+    using namespace std::chrono;
+    milliseconds ms = duration_cast< milliseconds >(
+        system_clock::now().time_since_epoch()
+    );
+    return ms.count();
+
 }

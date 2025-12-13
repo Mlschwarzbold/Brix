@@ -59,6 +59,14 @@ build_container() {
     docker build . -f Dockerfile -t brix
 }
 
+reset_network(){
+    echo "ending and removing existing tmux session..."
+    pkill -f tmux  || true
+    echo "removing existing docker network..."
+    docker ps -q | xargs -r -n1 docker kill
+
+}
+
 network() {
     build_type="${1:-$DEFAULT_BUILD_TYPE}"
 
@@ -123,8 +131,11 @@ case "$1" in
     clean)
         clean
         ;;
+    reset_network)
+        reset_network
+        ;;
     *)
-        echo "Usage: $0 {build [release]|server [port] [release]|client [port] [release]|build_container|network|show_ip|clean}"
+        echo "Usage: $0 {build [release]|server [port] [release]|client [port] [release]|build_container|network|show_ip|clean|reset_network}"
         exit 1
         ;;
 esac

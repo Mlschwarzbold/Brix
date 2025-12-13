@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <netdb.h>
 
 // Create a UDP socket and return its file descriptor
 int create_udp_socket() {
@@ -77,4 +78,22 @@ std::string addr_to_string(in_addr_t addr) {
     }
 
     return std::string(buffer);
+}
+
+
+std::string get_self_ip() {
+    char hostname[256];
+
+    if (gethostname(hostname, sizeof(hostname)) == -1) {
+        return 0;
+    }
+
+    hostent *host_entry = gethostbyname(hostname);
+    if (host_entry == nullptr) {
+        return 0;
+    }
+
+    in_addr *addr = (in_addr *)host_entry->h_addr_list[0];
+
+    return inet_ntoa(*addr);
 }

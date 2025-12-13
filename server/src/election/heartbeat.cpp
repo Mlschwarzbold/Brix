@@ -37,7 +37,7 @@ namespace election {
         std::string msg;
 
         // Generate response message
-        snprintf(send_buffer, sizeof(send_buffer), "ANS");
+        snprintf(send_buffer, sizeof(send_buffer), "ALV");
 
         while (true) {
             // receive incoming heartbeat requests

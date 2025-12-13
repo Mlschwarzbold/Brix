@@ -5,5 +5,6 @@
 
 char *getCurrentDateString();
 char *getCurrentTimeString();
+int get_current_time_ms();
 
 #endif // DATE_TIME_UTILS_H

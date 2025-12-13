@@ -5,6 +5,7 @@
 #include "greeter/server_UDP_greeter.h"
 #include "multiplexer/packet_multiplexer.h"
 #include "election/heartbeat.h"
+#include "election/redundancy_manager.h"
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -61,6 +62,8 @@ int main(int argc, char *argv[]) {
     pthread_create(&heartbeat_thread, NULL, election::start_heartbeat_receiver, (void *)&port);
 
 
+    election::RedundancyManager::get_instance();
+        
     //election::heartbeat_test("122.0.0.2", port + 2, 1000, 3);
 
     pthread_join(greeter_thread, NULL);
