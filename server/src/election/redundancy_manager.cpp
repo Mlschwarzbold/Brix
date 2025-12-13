@@ -8,7 +8,7 @@
 #include <bits/stdc++.h>
 #include "date_time_utils.h"
 #include "ports.h"
-
+#include <sstream>
 
 
 namespace election {
@@ -23,6 +23,12 @@ namespace election {
     // convert to int
     id = ntohl(ip);
     std::cout << CYAN << "My ID is: " << id << RESET << std::endl;
+
+    // precompute ELE, ANS and CRD messages
+    snprintf(election_message, sizeof(election_message), "ELE %u END", id);
+    snprintf(answer_message, sizeof(answer_message), "ANS %u END", id);
+    snprintf(coord_announcement_message, sizeof(coord_announcement_message), "CRD %u END", id);
+
 
     // Create election sockets
     election_message_port = 4000 + ELECTION_MESSAGES_PORT_DELTA;
@@ -51,6 +57,7 @@ namespace election {
     // Bind the socket with the server address
     bind_to_sockaddr(election_messages_socket, &messages_servaddr);
     bind_to_sockaddr(election_responses_socket, &responses_servaddr);
+
 
 
 
@@ -226,15 +233,15 @@ namespace election {
         if (n <= 0) {
             return false;
         }
-        std::string response(buffer);
-        if (response.find("ANS") == 0) {
-            //check higher id
-            sscanf(buffer, "ANS %u END", &responder_id);
-            if (responder_id > id) {
-                return true;
+        std::istringstream iss(buffer);
+        std::string tag, end;
+        if ((iss >> tag >> responder_id >> end) && tag == "ANS" && end == "END" && responder_id != id) { // not valid if from self
+            // valid
+            return true;
+        } else {
+            // invalid
+            return false;
             }
-        }
-        return false;
     }
 
     bool RedundancyManager::is_valid_coord_announcement(char *buffer, int n) {
@@ -242,31 +249,35 @@ namespace election {
         if (n <= 0) {
             return false;
         }
-        std::string response(buffer);
-        if (response.find("CRD") == 0) {
-            //check higher id
-            sscanf(buffer, "CRD %u END", &coordinator_id);
-            if (coordinator_id > id) {
-                return true;
+        std::istringstream iss(buffer);
+        std::string tag, end;
+        if ((iss >> tag >> coordinator_id >> end) && tag == "CRD" && end == "END" && coordinator_id != id) { // not valid if from self
+            // valid
+            return true;
+        } else {
+            // invalid
+            return false;
             }
-        }
-        return false;
     }
 
     bool RedundancyManager::is_valid_election_message(char *buffer, int n){
+        std::cout << BOLD << "msg: " << buffer << RESET << std::endl;
         unsigned int sender_id;
         if (n <= 0) {
+            std::cout << BOLD << "invalid election message n <= 0" << RESET << std::endl;
             return false;
         }
-        std::string response(buffer);
-        if (response.find("ELE") == 0) {
-            //check higher id
-            sscanf(buffer, "ELE %u END", &sender_id);
-            if (sender_id > id) {
-                return true;
-            }
-        }
-        return false;
+        std::istringstream iss(buffer);
+        std::string tag, end;
+        if ((iss >> tag >> sender_id >> end) && tag == "ELE" && end == "END" && sender_id != id) { // not valid if from self
+            // valid
+            std::cout << BOLD << "valid election message from id " << sender_id << RESET << std::endl;
+            return true;
+        } else {
+            // invalid
+            std::cout << BOLD << "invalid election message format" << RESET << std::endl;
+            return false;
+}
     }
 
     void* RedundancyManager::start_election_waiting_server(void *arg) {

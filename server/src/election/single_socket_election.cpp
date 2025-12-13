@@ -28,16 +28,22 @@ namespace election{
 
     void RedundancyManager::single_socket_election() {
         // Implementation of single socket election logic goes here
-        std::cout << BOLD << "Starting single socket election..." << RESET << std::endl;
+        std::cout << BOLD << "Starting single socket election on port "<< 4000 + SS_PORT_DELTA << RESET << std::endl;
 
 
         // socket creation and setup
         ss_sockfd = create_udp_socket();
         enable_broadcast(ss_sockfd);
-        set_timeout(ss_sockfd, 10);
+        set_timeout(ss_sockfd, 500);
         memset(&ss_cliaddr, 0, sizeof(ss_cliaddr));
         ss_servaddr = create_sockaddr("0.0.0.0", 4000 + SS_PORT_DELTA); // use messages port for single socket
         bind_to_sockaddr(ss_sockfd, &ss_servaddr);
+        ss_len = sizeof(ss_cliaddr);
+
+
+        broadcastcast_addr = ss_servaddr;               // reuse bound port/interface
+        broadcastcast_addr.sin_addr.s_addr = htonl(INADDR_BROADCAST);     // 255.255.255.255 (or use subnet broadcast)
+        broadcastcast_len = sizeof(broadcastcast_addr);
 
         int state = NOT_IN_PROGRESS;
         //int response_wait_time_ms = 0;
@@ -46,12 +52,16 @@ namespace election{
         //long elapsed_time = 0;
         //long start_time = get_current_time_ms();
         //long answer_wait_time = 500; // time to wait for coordinator announcement
+        std::cout << "starting Finite State machine" << std::endl;
         while(true){
-            
+            // clear buffer
+            memset(ss_buffer, 0, sizeof(ss_buffer));
             // read from socket
             ss_n = recvfrom(ss_sockfd, (char *)ss_buffer, ELECTION_MAXLINE, MSG_WAITALL,
                             (struct sockaddr *)&ss_cliaddr, &ss_len);
                 ss_buffer[ss_n] = '\0';
+
+            if(ss_n > 0) std::cout << BOLD << "Message received: " << ss_buffer << " from " << inet_ntoa(ss_cliaddr.sin_addr) << " port " << ntohs(ss_cliaddr.sin_port) << RESET << std::endl;
             
             // ignore loopback (127.0.0.0/8)
             uint32_t src_h = ntohl(ss_cliaddr.sin_addr.s_addr);
@@ -63,22 +73,34 @@ namespace election{
             // ================ Election Finite State Machine =================
 
 
+            
+
             switch(state){
                 // --------- NOT IN PROGRESS ---------
                 case NOT_IN_PROGRESS:
+                    std::cout << "NOT IN PROGRESS STATE" << std::endl;
                     switch (ss_election_result_switch()) {
                         case COORD_ANNOUNCEMENT:
                             break;
                         case ANSWER:
                             break;
                         case ELECTION:
+                            // start election process
+                            std::cout << GREEN << "ELECTION MESSAGE RECEIVED" << RESET << std::endl;
+                            //state = IN_PROGRESS;
+                            start_election_procedure();
                             break;
-                        case TIMEOUT:
+                        case TIMEOUT:   
+                            // remain in NOT IN PROGRESS, just wait
+                            break;
+                        default:
+                            std::cout << YELLOW << "INVALID MESSAGE RECEIVED - " << ss_buffer << RESET << std::endl;
                             break;
                         }
                     break;
                 // --------- ELECTION IN PROGRESS ---------
                 case IN_PROGRESS:
+                    std::cout << "IN PROGRESS STATE" << std::endl;
                     switch (ss_election_result_switch()) {
                         case COORD_ANNOUNCEMENT:
                             break;
@@ -121,10 +143,31 @@ namespace election{
                 return ELECTION;
             }
 
-            if(socket_timeout){
+            if(socket_timeout && ss_n < 0){
                 return TIMEOUT;
             }
         return NONE;
+    }
+
+
+    void RedundancyManager::start_election_procedure(){
+        // Answer election messages with own id
+        broadcast_election_message();
+
+        // Send election message with own id
+
+        return;
+    }
+
+
+    void RedundancyManager::broadcast_election_message(){
+
+        // broadcast election message
+        
+        sendto(ss_sockfd, election_message, strlen(election_message), MSG_CONFIRM,
+                (const struct sockaddr *)&broadcastcast_addr, broadcastcast_len);
+        std::cout << BOLD << "Election message broadcasted." << RESET << std::endl;
+
     }
 
 
