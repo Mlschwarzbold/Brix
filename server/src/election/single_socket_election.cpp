@@ -78,13 +78,13 @@ namespace election{
             
 
             switch(state){
+                // --------- INITIALIZATION  ---------
                 case INIT:
                     state = IN_PROGRESS;
                     is_coordinator = false;
-                    // Send election message with own id
                     broadcast_election_message();
                     break;
-                // --------- NOT IN PROGRESS ---------
+                // --------- ELECTION NOT IN PROGRESS ---------
                 case NOT_IN_PROGRESS:
                     current_wait_time = 0;
                     //std::cout << "NOT IN PROGRESS STATE" << is_coordinator << std::endl;
@@ -96,7 +96,7 @@ namespace election{
                             break;
                         case ELECTION:
                             // start election process
-                            std::cout << GREEN << "ELECTION MESSAGE RECEIVED" << RESET << std::endl;
+                            std::cout << GREEN << "Election Message Received" << RESET << std::endl;
                             if(last_received_id < id) start_election_procedure(); //if we have higher id, start election
                             else state = WAITING_FOR_COORD; // if we have lower id, do nothing and wait for coordinator announcement  
 
@@ -257,6 +257,61 @@ namespace election{
         std::cout << BOLD << "Coordinator announcement message broadcasted." << RESET << std::endl;
 
 
+    }
+
+    bool RedundancyManager::is_valid_answer(char *buffer, int n) {
+        unsigned int responder_id;
+        if (n <= 0) {
+            return false;
+        }
+        std::istringstream iss(buffer);
+        std::string tag, end;
+        if ((iss >> tag >> responder_id >> end) && tag == "ANS" && end == "END" && responder_id != id) { // not valid if from self
+            // valid
+            last_received_id = responder_id;
+            return true;
+        } else {
+            // invalid
+            return false;
+            }
+    }
+
+    bool RedundancyManager::is_valid_coord_announcement(char *buffer, int n) {
+        unsigned int coordinator_id;
+        if (n <= 0) {
+            return false;
+        }
+        std::istringstream iss(buffer);
+        std::string tag, end;
+        if ((iss >> tag >> coordinator_id >> end) && tag == "CRD" && end == "END" && coordinator_id != id) { // not valid if from self
+            // valid
+            last_received_id = coordinator_id;
+            return true;
+        } else {
+            // invalid
+            return false;
+            }
+    }
+
+    bool RedundancyManager::is_valid_election_message(char *buffer, int n){
+        //std::cout << BOLD << "msg: " << buffer << RESET << std::endl;
+        unsigned int sender_id;
+        if (n <= 0) {
+            //std::cout << BOLD << "invalid election message n <= 0" << RESET << std::endl;
+            return false;
+        }
+        std::istringstream iss(buffer);
+        std::string tag, end;
+        if ((iss >> tag >> sender_id >> end) && tag == "ELE" && end == "END" && sender_id != id) { // not valid if from self
+            // valid
+            //std::cout << BOLD << "valid election message from id " << sender_id << RESET << std::endl;
+            last_received_id = sender_id;
+            return true;
+        } else {
+            // invalid
+            //std::cout << BOLD << "invalid election message format" << RESET << std::endl;
+            return false;
+            }
     }
 
 

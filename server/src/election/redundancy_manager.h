@@ -26,6 +26,7 @@ namespace election {
 
         bool is_coordinator;
         in_addr_t coordinator_ip;
+        bool in_standby_mode;
 
     private:
         RedundancyManager();

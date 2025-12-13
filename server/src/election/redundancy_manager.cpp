@@ -30,58 +30,11 @@ namespace election {
     snprintf(coord_announcement_message, sizeof(coord_announcement_message), "CRD %u END", id);
 
 
-    // Create election sockets
-    election_message_port = 4000 + ELECTION_MESSAGES_PORT_DELTA;
-    election_response_port = 4000 + ELECTION_RESPONSES_PORT_DELTA;
-    election_messages_socket = create_udp_socket();
-    election_responses_socket = create_udp_socket();
-        
-    // Enable broadcast
-    enable_broadcast(election_messages_socket);
-    //enable_broadcast(election_responses_socket);
-
-    // Add timeout
-    //set_timeout(election_messages_socket, 10);
-    set_timeout(election_responses_socket, 10);
-
-    memset(&responses_servaddr, 0, sizeof(responses_servaddr));
-    memset(&messages_servaddr, 0, sizeof(messages_servaddr));
-
-    memset(&messages_cliaddr, 0, sizeof(messages_cliaddr));
-    memset(&responses_cliaddr, 0, sizeof(responses_cliaddr));
-
-     // Filling server information
-    responses_servaddr = create_sockaddr("0.0.0.0", election_response_port);
-    messages_servaddr = create_sockaddr("0.0.0.0", election_message_port);
-
-    // Bind the socket with the server address
-    bind_to_sockaddr(election_messages_socket, &messages_servaddr);
-    bind_to_sockaddr(election_responses_socket, &responses_servaddr);
-
-
-
-
-
     is_coordinator = false;
     election_in_progress = false;
 
-
     single_socket_election();
 
-
-    //pthread_t election_listener_thread; //, election_thread;
-
-    // start listening for election messages
-    //int *port_ptr = new int(4000);
-    //pthread_create(&election_listener_thread, NULL, &RedundancyManager::start_election_waiting_server, (void *)port_ptr);
-    //pthread_create(&election_listener_thread, NULL, &RedundancyManager::start_election_waiting_server, (void *)NULL);
-    //pthread_detach(election_listener_thread);
-
-
-    // start election
-    //int *election_port_ptr = new int(4000);
-    //pthread_create(&election_thread, NULL, &RedundancyManager::start_election, (void *)election_port_ptr);
-    //pthread_detach(election_thread);
 
     }
 
@@ -97,7 +50,7 @@ namespace election {
         return instance;
     }
 
-    void* RedundancyManager::start_election(void *arg){
+    /*void* RedundancyManager::start_election(void *arg){
 
     #if _DEBUG
         std::cout << BLUE << "Starting election " << RESET
@@ -222,7 +175,7 @@ namespace election {
         
         
         return;
-    }
+    }*/
 
     void RedundancyManager::stand_by() {
 
@@ -230,61 +183,9 @@ namespace election {
     }
 
 
-    bool RedundancyManager::is_valid_answer(char *buffer, int n) {
-        unsigned int responder_id;
-        if (n <= 0) {
-            return false;
-        }
-        std::istringstream iss(buffer);
-        std::string tag, end;
-        if ((iss >> tag >> responder_id >> end) && tag == "ANS" && end == "END" && responder_id != id) { // not valid if from self
-            // valid
-            last_received_id = responder_id;
-            return true;
-        } else {
-            // invalid
-            return false;
-            }
-    }
+    
 
-    bool RedundancyManager::is_valid_coord_announcement(char *buffer, int n) {
-        unsigned int coordinator_id;
-        if (n <= 0) {
-            return false;
-        }
-        std::istringstream iss(buffer);
-        std::string tag, end;
-        if ((iss >> tag >> coordinator_id >> end) && tag == "CRD" && end == "END" && coordinator_id != id) { // not valid if from self
-            // valid
-            last_received_id = coordinator_id;
-            return true;
-        } else {
-            // invalid
-            return false;
-            }
-    }
-
-    bool RedundancyManager::is_valid_election_message(char *buffer, int n){
-        //std::cout << BOLD << "msg: " << buffer << RESET << std::endl;
-        unsigned int sender_id;
-        if (n <= 0) {
-            //std::cout << BOLD << "invalid election message n <= 0" << RESET << std::endl;
-            return false;
-        }
-        std::istringstream iss(buffer);
-        std::string tag, end;
-        if ((iss >> tag >> sender_id >> end) && tag == "ELE" && end == "END" && sender_id != id) { // not valid if from self
-            // valid
-            //std::cout << BOLD << "valid election message from id " << sender_id << RESET << std::endl;
-            last_received_id = sender_id;
-            return true;
-        } else {
-            // invalid
-            //std::cout << BOLD << "invalid election message format" << RESET << std::endl;
-            return false;
-}
-    }
-
+    /*
     void* RedundancyManager::start_election_waiting_server(void *arg) {
         //delete (int*)arg; // free heap memory passed to the thread
 
@@ -361,7 +262,7 @@ namespace election {
         pthread_detach(election_thread);
     }   
     
-
+    */
 }// namespace election
 
 
