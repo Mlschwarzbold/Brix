@@ -145,27 +145,33 @@ namespace election {
         const char *ip_str;
         while (true) {
             // wait before next test
-            std::this_thread::sleep_for(std::chrono::seconds(8));
-            
-            ip_str = inet_ntoa(*(in_addr *)&RM->coordinator_ip);
-
-            std::cout << CYAN << ip_str << RESET << std::endl;
-
+            std::this_thread::sleep_for(std::chrono::seconds(2));
             if(RM->is_coordinator) continue; // skip if we are coordinator
-            if(RM->coordinator_ip == 0) continue; // skip if we don't know coordinator ip
 
+            try {
+                //if(RM->coordinator_ip == 0) continue; // skip if we don't know coordinator ip
+                
+                ip_str = inet_ntoa(*(in_addr *)&RM->coordinator_ip);
+
+                std::cout << CYAN << ip_str << RESET << std::endl;
+                
+
+                bool alive = heartbeat_test( ip_str, target_port, timeout_ms, tries);
+                if (!alive) {
+                    std::cout << RED << "No heartbeat response from main server. Initiating election..." << RESET << std::endl;
+                    // initiate election
+                    RM->backup_election();
+            }
+            } catch (const std::exception &e) {
+                std::cerr << RED << "Error in heartbeat tester loop: " << e.what() << RESET << std::endl;
+
+            }
             
 
-            bool alive = heartbeat_test( ip_str, target_port, timeout_ms, tries);
-            if (!alive) {
-                std::cout << RED << "No heartbeat response from main server. Initiating election..." << RESET << std::endl;
-                // initiate election
-                RM->backup_election();
-                return;
-            }
             
         }
 
+        std::cout << RED << "Exiting heartbeat tester loop." << RESET << std::endl;
         return;
     }
 
