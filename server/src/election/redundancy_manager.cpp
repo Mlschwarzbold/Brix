@@ -46,11 +46,11 @@ namespace election {
         return; 
     }
 
-    void RedundancyManager::init() {
+    void RedundancyManager::init(int port) {
         is_coordinator = false;
         in_standby_mode = false;
 
-        port_n = 4000; // default requests port
+        port_n = port; // default requests port
         // create heartbeat receiver thread
         pthread_create(&heartbeat_thread, NULL, election::start_heartbeat_receiver, (void *)&port_n);
         pthread_detach(heartbeat_thread);

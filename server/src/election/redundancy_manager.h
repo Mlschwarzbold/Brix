@@ -14,7 +14,7 @@ namespace election {
         ~RedundancyManager();
         static RedundancyManager *get_instance();
 
-        void init();
+        void init(int port);
         void stand_by();
         void single_socket_election();
         void backup_election();

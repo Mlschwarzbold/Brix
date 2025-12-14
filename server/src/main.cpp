@@ -35,6 +35,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+
     db_manager::DbManager *db = db_manager::DbManager::get_instance();
 
     db_synchronizer::DB_Synchronizer::setup(port);
@@ -62,7 +63,8 @@ int main(int argc, char *argv[]) {
     //pthread_create(&heartbeat_thread, NULL, election::start_heartbeat_receiver, (void *)&port);
 
 
-    election::RedundancyManager::get_instance()->init();
+    election::RedundancyManager::get_instance()->init(port);
+
 
         
     //election::heartbeat_test("122.0.0.2", port + 2, 1000, 3);

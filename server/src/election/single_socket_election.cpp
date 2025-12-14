@@ -32,7 +32,7 @@ namespace election {
 void RedundancyManager::single_socket_election() {
     // Implementation of single socket election logic goes here
     std::cout << BOLD << "Starting single socket election on port "
-              << 4000 + SS_PORT_DELTA << RESET << std::endl;
+              << port_n + SS_PORT_DELTA << RESET << std::endl;
 
     // socket creation and setup
     ss_sockfd = create_udp_socket();
@@ -40,7 +40,7 @@ void RedundancyManager::single_socket_election() {
     set_timeout(ss_sockfd, 10);
     memset(&ss_cliaddr, 0, sizeof(ss_cliaddr));
     ss_servaddr = create_sockaddr(
-        "0.0.0.0", 4000 + SS_PORT_DELTA); // use messages port for single socket
+        "0.0.0.0", port_n + SS_PORT_DELTA); // use messages port for single socket
     bind_to_sockaddr(ss_sockfd, &ss_servaddr);
     ss_len = sizeof(ss_cliaddr);
 
